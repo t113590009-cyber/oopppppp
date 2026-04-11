@@ -29,10 +29,14 @@ private:
     State m_State = State::WALKING;
 
     float m_WorldX;
-    const float m_WorldY = -240.0f; // 🌟 依照要求維持 -240.0f
 
-    // 🌟 取代原本的 m_Speed，預設負數代表往左走
+    // 🌟 1. 移除 const！讓栗子球可以上下移動
+    float m_WorldY = -240.0f;
+
+    // 🌟 2. 加上 Y 軸的掉落速度與著地狀態
     float m_VelocityX = -1.45f;
+    float m_VelocityY = 0.0f;
+    bool m_IsOnGround = true;
 
     float m_AnimTimer = 0.0f;
     int m_CurrentFrame = 1;
