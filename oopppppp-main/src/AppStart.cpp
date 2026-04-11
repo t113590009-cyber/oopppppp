@@ -11,12 +11,12 @@ void App::Start() {
 
     m_Map->Init(m_Root);
 
-    // 🌟 城堡初始化 (已修正檔名為 caslte1_1_win.png)
+    // 🌟 城堡初始化
     m_Castle = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/caslte1_1_win.png");
-    m_Castle->m_Transform.scale = { 3.0f, 3.0f }; // 配合地圖比例放大
-    m_Castle->SetZIndex(2);                       // 放在地圖上方，瑪利歐下方
-    m_Castle->SetPosition({ 9436.0f, -145.0f });  // 設定在關卡最後端
-    m_Castle->SetVisible(false);                  // 初始隱藏
+    m_Castle->m_Transform.scale = { 3.0f, 3.0f };
+    m_Castle->SetZIndex(2);
+    m_Castle->SetPosition({ 9436.0f, -145.0f });
+    m_Castle->SetVisible(false);
     m_Root.AddChild(m_Castle);
 
     // 2. 把標題和游標推上舞台
@@ -43,6 +43,16 @@ void App::Start() {
     rightBar->SetZIndex(20);
     rightBar->SetPosition({ 550.0f, 0.0f });
     m_Root.AddChild(rightBar);
+
+    // ==========================================
+    // 🌟 新增：載入失敗畫面 UI
+    // ==========================================
+    m_FailScreen = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/fail.png");
+    m_FailScreen->m_Transform.scale = { 3.0f, 3.0f }; // 可以依照你的需求調整大小
+    m_FailScreen->SetZIndex(100);                     // 設為 100 確保蓋在最上層
+    m_FailScreen->SetPosition({ 0.0f, 0.0f });        // 放在畫面正中央
+    m_FailScreen->SetVisible(false);                  // 一開始先隱藏
+    m_Root.AddChild(m_FailScreen);
 
     // ==========================================
     // 4. 碰撞與玩家 (隱形物理牆壁)

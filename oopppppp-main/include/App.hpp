@@ -1,7 +1,7 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-#include "pch.hpp" 
+#include "pch.hpp"
 #include "Util/Renderer.hpp"
 #include "CollisionHandler.hpp" // 裡面已經有 struct Rect 了
 #include "Player.hpp"           // 新建立的角色類別
@@ -35,7 +35,6 @@ private:
     Util::Renderer m_Root;
 
     // --- ➡️ 重構後的管理者對象 ---
-    // 使用 smart pointers 來管理你新寫的類別
     std::unique_ptr<Menu> m_Menu;
     std::unique_ptr<Player> m_Player;
     std::unique_ptr<Map> m_Map;
@@ -53,8 +52,12 @@ private:
     // ==========================================
     // 🍄 朋友新增：栗子球管理系統
     // ==========================================
-    std::vector<std::unique_ptr<Goomba>> m_Goombas; // 用來存放畫面上所有的栗子球
-    int m_SpawnPhase = 0;                           // 用來控制怪物生成的階段
+    std::vector<std::unique_ptr<Goomba>> m_Goombas;
+    int m_SpawnPhase = 0;
+
+    // 🌟 失敗畫面 UI 與延遲計時器
+    std::shared_ptr<Character> m_FailScreen;
+    float m_DeathTimer = 0.0f; // <--- 新增這個計時器
 };
 
 #endif // APP_HPP

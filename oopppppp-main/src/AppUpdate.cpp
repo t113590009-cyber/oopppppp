@@ -18,10 +18,8 @@ void App::Update() {
             }
             if (m_Map) m_Map->SetVisible(true);
 
-            // 🌟 城堡顯示：當遊戲開始時，讓城堡出現
             if (m_Castle) m_Castle->SetVisible(true);
 
-            // 遊戲開始時，把所有磚塊顯示出來
             for (auto& block : m_Blocks) {
                 if (block->GetCharacter()) {
                     block->GetCharacter()->SetVisible(true);
@@ -34,11 +32,22 @@ void App::Update() {
         // 更新玩家物理 (包含傳送門與磚塊碰撞)
         m_Player->Update(m_WorldOffset, m_Collision, m_Blocks, dt);
 
+        // ==========================================
+        // 🌟 修改：偵測瑪利歐死亡，並加上延遲再顯示 FAIL 畫面
+        // ==========================================
+        if (m_Player->IsDead() && m_FailScreen) {
+            m_DeathTimer += dt; // 開始計時
+
+            // 延遲 1.5 秒顯示 FAIL 畫面 (你可以依照動畫長短把 1.5f 改成 1.0f 或 2.0f)
+            if (m_DeathTimer > 1.5f) {
+                m_FailScreen->SetVisible(true);
+            }
+        }
+
         // --- 🧱 磚塊更新與破壞判定 ---
         for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
             (*it)->Update(dt, m_WorldOffset);
 
-            // 如果磚塊碎了，就從畫面上移除
             if ((*it)->IsDestroyed()) {
                 m_Root.RemoveChild((*it)->GetCharacter());
                 it = m_Blocks.erase(it);
@@ -48,7 +57,6 @@ void App::Update() {
             }
         }
 
-        // 你最新的城堡座標
         if (m_Castle) {
             m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
         }
@@ -80,7 +88,6 @@ void App::Update() {
         // --- 🍄 栗子球更新與踩踏判定 ---
         for (auto it = m_Goombas.begin(); it != m_Goombas.end(); ) {
 
-            // 🌟 傳入 m_Collision 讓栗子球看得到水管
             (*it)->Update(dt, m_WorldOffset, m_Collision);
 
             glm::vec2 pPos = m_Player->GetPosition();
@@ -93,10 +100,12 @@ void App::Update() {
                 float marioBottom = pPos.y - 25.0f;
                 float goombaCenter = goombaScreenRect.y + (goombaScreenRect.height / 2.0f);
 
-                if (m_Player->GetVelocityY() < 0.0f && marioBottom > goombaCenter) {
-                    (*it)->Stomp();
-                } else {
-                    // 撞到受傷邏輯留白
+                if (!m_Player->IsDead()) {
+                    if (m_Player->GetVelocityY() < 0.0f && marioBottom > goombaCenter) {
+                        (*it)->Stomp();
+                    } else {
+                        m_Player->Die();
+                    }
                 }
             }
 

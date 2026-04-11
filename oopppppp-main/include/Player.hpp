@@ -2,8 +2,8 @@
 #define PLAYER_HPP
 
 #include "AnimatedCharacter.hpp"
-#include "CollisionHandler.hpp" 
-#include "Block.hpp" 
+#include "CollisionHandler.hpp"
+#include "Block.hpp"
 #include <memory>
 #include <vector>
 #include <string>
@@ -11,15 +11,16 @@
 
 class Player {
 public:
-    // 🌟 1. 擴充動畫狀態：區分 A 點下沉與 B 點右移
+    // 🌟 擴充動畫狀態：加入 DEAD
     enum class AnimState {
         IDLE,
         RUN,
         JUMP,
         CROUCHING,
-        WARP_DOWN_A,   // 地表入口 -> A點
-        WARP_RIGHT_B,  // 地下室B點 -> 地表出口
-        WARP_UP_OUT    // 地表出口 -> 向上冒出
+        WARP_DOWN_A,
+        WARP_RIGHT_B,
+        WARP_UP_OUT,
+        DEAD           // 💀 新增：死亡狀態
     };
 
     Player();
@@ -34,8 +35,13 @@ public:
 
     Rect GetFeetRect(float worldOffset) const;
 
-    // ➕ 朋友的新增功能：讓 App 知道瑪利歐是不是往下掉 (用於判定踩死栗子球)
     float GetVelocityY() const { return m_Velocity.y; }
+
+    // 💀 朋友的新增功能：觸發瑪利歐死亡
+    void Die();
+
+    // 確認瑪利歐是否已死亡 (用於 App.cpp 判斷是否要停止遊戲邏輯)
+    bool IsDead() const { return m_CurrentState == AnimState::DEAD; }
 
 private:
     std::shared_ptr<AnimatedCharacter> m_Mario;
@@ -47,15 +53,19 @@ private:
     const float m_JumpImpulse = 20.0f;
     const float m_WalkSpeed = 6.0f;
 
-    // 🌟 2. 狀態管理與傳送記憶變數
+    // --- 狀態管理與傳送記憶變數 ---
     AnimState m_CurrentState = AnimState::IDLE;
-    float m_WarpStartY = 0.0f;                  // 記錄 A 點開始下沉的高度
-    float m_WarpStartX = 0.0f;                  // 記錄 B 點開始推進的橫向座標
+    float m_WarpStartY = 0.0f;
+    float m_WarpStartX = 0.0f;
+
+    // 💀 死亡動畫相關計時器
+    float m_DeathTimer = 0.0f;
 
     // --- 動畫資源路徑 ---
     std::vector<std::string> m_RunImages;
     std::vector<std::string> m_StandImages;
     std::vector<std::string> m_JumpImages;
+    std::vector<std::string> m_DeadImages; // 💀 新增：死亡圖片陣列
 };
 
 #endif // PLAYER_HPP
