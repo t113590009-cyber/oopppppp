@@ -105,11 +105,16 @@ void App::Start() {
     const float ROW_1_Y = -72.0f;
     const float ROW_2_Y = 120.0f;
 
-    auto AddBlock = [&](Block::Type type, float gridX, float absoluteY) {
-       float absoluteX = START_X + (gridX * TILE);
-       auto block = std::make_shared<Block>(type, glm::vec2(absoluteX, absoluteY));
-       m_Blocks.push_back(block);
-       m_Root.AddChild(block->GetCharacter());
+    // 🌟 1. 幫 AddBlock 新增第三個參數 itemType，預設是 NONE (空的)
+    auto AddBlock = [&](Block::Type type, float gridX, float absoluteY, Block::ItemType itemType = Block::ItemType::NONE) {
+        float absoluteX = START_X + (gridX * TILE);
+        auto block = std::make_shared<Block>(type, glm::vec2(absoluteX, absoluteY));
+
+        // 🌟 2. 在這裡把道具塞進方塊的肚子裡！
+        block->SetItemType(itemType);
+
+        m_Blocks.push_back(block);
+        m_Root.AddChild(block->GetCharacter());
     };
 
     auto entrancePipe = std::make_shared<Block>(Block::Type::PIPE_A, glm::vec2(2400.0f, -168.0f));
@@ -120,9 +125,16 @@ void App::Start() {
     m_Blocks.push_back(exitPipe);
     m_Root.AddChild(exitPipe->GetCharacter());
 
-    AddBlock(Block::Type::QUESTION, 16, ROW_1_Y);
+    // 🌟 3. 開始塞道具！
+    // 這是第一個問號方塊 (gridX = 16)，我們塞入蘑菇！
+    AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::MUSHROOM);
+
     AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 21, ROW_1_Y);
+
+    // 這是第二個問號方塊 (gridX = 21)，我們塞入星星！
+    AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::STAR);
+
+    // 下面的都不用改，因為我們預設參數給了 NONE，所以它們都會是空方塊！
     AddBlock(Block::Type::BRICK_FRAGILE, 22, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 23, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 24, ROW_1_Y);
