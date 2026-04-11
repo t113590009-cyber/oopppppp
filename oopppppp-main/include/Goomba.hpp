@@ -14,7 +14,8 @@ public:
     // 🌟 確保建構子只有一個 float 參數
     Goomba(float spawnWorldX);
 
-    void Update(float deltaTime, float worldOffset);
+    // 🌟 這裡加入 const CollisionHandler& collision
+    void Update(float deltaTime, float worldOffset, const CollisionHandler& collision);
     void Stomp();
 
     // 🌟 確保這行結尾有 const
@@ -30,7 +31,9 @@ private:
     float m_WorldX;
     const float m_WorldY = -240.0f; // 🌟 依照要求維持 -240.0f
 
-    float m_Speed = 1.45f;
+    // 🌟 取代原本的 m_Speed，預設負數代表往左走
+    float m_VelocityX = -1.45f;
+
     float m_AnimTimer = 0.0f;
     int m_CurrentFrame = 1;
     float m_DeathTimer = 0.0f;

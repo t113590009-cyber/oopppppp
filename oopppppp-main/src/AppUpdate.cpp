@@ -48,6 +48,7 @@ void App::Update() {
             }
         }
 
+        // 你最新的城堡座標
         if (m_Castle) {
             m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
         }
@@ -78,7 +79,9 @@ void App::Update() {
 
         // --- 🍄 栗子球更新與踩踏判定 ---
         for (auto it = m_Goombas.begin(); it != m_Goombas.end(); ) {
-            (*it)->Update(dt, m_WorldOffset);
+
+            // 🌟 傳入 m_Collision 讓栗子球看得到水管
+            (*it)->Update(dt, m_WorldOffset, m_Collision);
 
             glm::vec2 pPos = m_Player->GetPosition();
             Rect marioScreenRect = { pPos.x - 18.0f, pPos.y - 25.0f, 36.0f, 20.0f };
