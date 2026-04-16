@@ -5,7 +5,7 @@
 #include "Util/Time.hpp"
 
 // 🌟 記得要把這兩個道具的標頭檔都引進來！
-#include "Mushroom.hpp" 
+#include "Mushroom.hpp"
 #include "Star.hpp"
 
 void App::Update() {
@@ -33,7 +33,20 @@ void App::Update() {
     }
     // --- 2. 遊戲邏輯 ---
     else {
+        // 更新玩家物理 (包含傳送門與磚塊碰撞)
         m_Player->Update(m_WorldOffset, m_Collision, m_Blocks, dt);
+
+        // ==========================================
+        // 🌟 融合一：偵測瑪利歐死亡，並加上延遲再顯示 FAIL 畫面
+        // ==========================================
+        if (m_Player->IsDead() && m_FailScreen) {
+            m_DeathTimer += dt; // 開始計時
+
+            // 延遲 1.5 秒顯示 FAIL 畫面 (你可以依照動畫長短調整)
+            if (m_DeathTimer > 1.5f) {
+                m_FailScreen->SetVisible(true);
+            }
+        }
 
         // --- 🧱 磚塊更新與破壞判定 ---
         for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
@@ -49,7 +62,7 @@ void App::Update() {
         }
 
         // ==========================================
-        // 🎁 道具系統：根據方塊內容物生成對應道具！
+        // 🎁 融合二：道具系統 - 根據方塊內容物生成對應道具！
         // ==========================================
         for (auto& block : m_Blocks) {
             if (block->HasJustSpawnedItem()) {
@@ -71,7 +84,7 @@ void App::Update() {
         }
 
         // ==========================================
-        // 🌟 把地板水管跟天空磚塊打包成總名單
+        // 🌟 融合二：把地板水管跟天空磚塊打包成總名單 (給道具物理用)
         // ==========================================
         std::vector<Rect> allObstacles = m_Collision.GetObstacles();
         for (const auto& block : m_Blocks) {
@@ -82,7 +95,7 @@ void App::Update() {
         }
 
         // ==========================================
-        // 🍄 道具系統：道具物理更新與瑪利歐吃道具判定
+        // 🍄 融合二：道具物理更新與瑪利歐吃道具判定
         // ==========================================
         for (auto it = m_Items.begin(); it != m_Items.end(); ) {
 
@@ -92,6 +105,7 @@ void App::Update() {
             Rect marioRect = m_Player->GetFeetRect(m_WorldOffset);
             Rect itemRect = (*it)->GetRect(m_WorldOffset);
 
+            // 碰到道具的判定
             if (CollisionHandler::CheckCollision(marioRect, itemRect)) {
                 (*it)->ApplyEffect(m_Player.get()); // 呼叫變大 (蘑菇) 或 無敵 (星星)！
             }
@@ -145,19 +159,23 @@ void App::Update() {
             if ((*it)->GetState() == Goomba::State::WALKING &&
                 CollisionHandler::CheckCollision(marioScreenRect, goombaScreenRect)) {
 
-                // 🌟 終極無敵判定：如果是星星狀態，直接秒殺怪物！
-                if (m_Player->IsStarMode()) {
-                    (*it)->Stomp();
-                }
-                else {
-                    float marioBottom = pPos.y - 25.0f;
-                    float goombaCenter = goombaScreenRect.y + (goombaScreenRect.height / 2.0f);
-
-                    if (m_Player->GetVelocityY() < 0.0f && marioBottom > goombaCenter) {
+                // 🌟 保護機制：瑪利歐活著才算碰撞
+                if (!m_Player->IsDead()) {
+                    // 🌟 終極無敵判定：如果是星星狀態，直接秒殺怪物！
+                    if (m_Player->IsStarMode()) {
                         (*it)->Stomp();
                     }
                     else {
-                        m_Player->TakeDamage();
+                        float marioBottom = pPos.y - 25.0f;
+                        float goombaCenter = goombaScreenRect.y + (goombaScreenRect.height / 2.0f);
+
+                        // 判斷是否踩在怪物頭上
+                        if (m_Player->GetVelocityY() < 0.0f && marioBottom > goombaCenter) {
+                            (*it)->Stomp();
+                        }
+                        else {
+                            m_Player->TakeDamage(); // 呼叫 TakeDamage 而非直接死掉，支援大瑪利歐降級！
+                        }
                     }
                 }
             }

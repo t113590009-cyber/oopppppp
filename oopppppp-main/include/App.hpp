@@ -1,17 +1,18 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-#include "pch.hpp" 
+#include "pch.hpp"
 #include "Util/Renderer.hpp"
-#include "CollisionHandler.hpp" 
-#include "Player.hpp"           
-#include "Map.hpp"              
-#include "Menu.hpp"             
-#include "Block.hpp"            
-#include "Goomba.hpp"           
-// 🌟 補上這兩個道具系統的標頭檔
-#include "Item.hpp"             
-#include "Mushroom.hpp"         
+#include "CollisionHandler.hpp" // 裡面已經有 struct Rect 了
+#include "Player.hpp"           // 新建立的角色類別
+#include "Map.hpp"              // 新建立的地圖類別
+#include "Menu.hpp"             // 新建立的選單類別
+#include "Block.hpp"            // 🛡️ 保衛戰：保留你的磚塊系統
+#include "Goomba.hpp"           // ➕ 朋友新增：栗子球標頭檔
+
+// 🌟 補上道具系統的標頭檔 (合併自第二份程式碼)
+#include "Item.hpp"
+#include "Mushroom.hpp"
 
 #include <memory>
 #include <vector>
@@ -49,18 +50,25 @@ private:
     // 碰撞系統
     CollisionHandler m_Collision;
 
+    // 如果你有全域的捲動位移，可以考慮留在這或移入 Map
     float m_WorldOffset = 0.0f;
 
     // ==========================================
-    // 🍄 栗子球管理系統
+    // 🍄 朋友新增：栗子球管理系統
     // ==========================================
     std::vector<std::unique_ptr<Goomba>> m_Goombas;
     int m_SpawnPhase = 0;
 
     // ==========================================
-    // 🌟 道具管理系統 (補上這個百寶袋！)
+    // 🌟 道具管理系統 (合併自第二份程式碼)
     // ==========================================
     std::vector<std::shared_ptr<Item>> m_Items;     // 用來存放畫面上所有的道具
+
+    // ==========================================
+    // 💀 失敗畫面 UI 與延遲計時器 (保留第一份程式碼)
+    // ==========================================
+    std::shared_ptr<Character> m_FailScreen;
+    float m_DeathTimer = 0.0f; // <--- 死亡判定計時器
 };
 
 #endif // APP_HPP

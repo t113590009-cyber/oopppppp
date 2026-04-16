@@ -1,7 +1,12 @@
 #include "Star.hpp"
 
 Star::Star(float spawnWorldX, float spawnWorldY)
-    : Item({ GA_RESOURCE_DIR"/Image/Items/star1.png" }) // 請確認你的星星圖檔檔名
+    : Item({
+        GA_RESOURCE_DIR"/Image/Props/star/Star1.png",
+        GA_RESOURCE_DIR"/Image/Props/star/Star2.png",
+        GA_RESOURCE_DIR"/Image/Props/star/Star3.png",
+        GA_RESOURCE_DIR"/Image/Props/star/Star4.png"
+        })
 {
     m_WorldX = spawnWorldX;
     m_WorldY = spawnWorldY;

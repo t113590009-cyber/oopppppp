@@ -46,7 +46,7 @@ Block::Block(Type type, glm::vec2 startPos, int interval) {
     m_Visual = std::make_shared<AnimatedCharacter>(m_NormalImages);
     m_Visual->SetPosition(m_CurrentPos);
 
-    // --- 設定圖層 ---
+    // --- 設定圖層 (水管在前面 Z=15) ---
     if (type == Type::PIPE_A || type == Type::PIPE_B) {
         m_Visual->SetZIndex(15);
     }
@@ -76,8 +76,7 @@ void Block::Update(float deltaTime, float worldOffset) {
             // 🌟 核心：如果有道具，觸發舉手開關！
             if (m_HasItem) {
                 m_HasItem = false;        // 口袋空了
-                m_JustSpawnedItem = true; // 舉手🙋‍♂️！通知 AppUpdate 生成蘑菇
-                // 外觀變成 EMPTY 的邏輯，你的 Update 裡已經完美寫好了！
+                m_JustSpawnedItem = true; // 舉手🙋‍♂️！通知 AppUpdate 生成道具
             }
 
             if (m_Type == Type::QUESTION || m_Type == Type::BRICK_ITEM) {
@@ -95,7 +94,7 @@ void Block::Update(float deltaTime, float worldOffset) {
 
 // 🌟 2. 接收 isBigMario 參數，實作敲磚與噴道具邏輯
 void Block::Hit(bool isBigMario) {
-    // 水管防呆：水管頂不動！
+    // 3. 水管防呆：水管頂不動！
     if (m_Type == Type::PIPE_A || m_Type == Type::PIPE_B) return;
 
     // 如果已經空了、碎了、或是正在彈，就不反應
@@ -111,14 +110,14 @@ void Block::Hit(bool isBigMario) {
     }
 
     // 觸發彈跳
-    m_State = State::BOUNCING;
-    m_VelocityY = 9.0f; // 保持你原本完美的彈跳力度
-
-    
+    if (m_State == State::NORMAL) {
+        m_State = State::BOUNCING;
+        m_VelocityY = 9.0f; // 保持完美的彈跳力度
+    }
 }
 
 Rect Block::GetHitbox() const {
-    // 關鍵修正：水管「不要」產生內建碰撞框
+    // 🌟 4. 關鍵修正：水管「不要」產生內建碰撞框！實體碰撞交給 AppStart 處理！
     if (m_State == State::DESTROYED || m_Type == Type::PIPE_A || m_Type == Type::PIPE_B) {
         return { 0.0f, 0.0f, 0.0f, 0.0f };
     }

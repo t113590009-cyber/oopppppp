@@ -7,8 +7,9 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <glm/vec2.hpp> // 來自第一份：確保 vec2 正常運作
 
-// 🌟 定義瑪利歐的所有動作狀態
+// 🌟 定義瑪利歐的所有動作狀態 (結合第一份的 DEAD 與第二份的變身 CHANGING)
 enum class AnimState {
     IDLE,
     RUN,
@@ -17,7 +18,8 @@ enum class AnimState {
     CHANGING,     // 變身/無敵暫停狀態
     WARP_DOWN_A,  // 進水管 (下)
     WARP_RIGHT_B, // 進水管 (右)
-    WARP_UP_OUT   // 出水管 (上)
+    WARP_UP_OUT,  // 出水管 (上)
+    DEAD          // 💀 新增：死亡狀態 (來自第一份)
 };
 
 class Player {
@@ -27,15 +29,24 @@ public:
     // 核心更新邏輯
     void Update(float& worldOffset, const CollisionHandler& collision, std::vector<std::shared_ptr<Block>>& blocks, float deltaTime);
 
-    // 道具與受傷邏輯
+    // 道具與受傷邏輯 (來自第二份)
     void GrowUp();
     void TakeDamage();
     void GetStar(); // 🌟 吃到無敵星星！
 
+    // 💀 死亡邏輯 (來自第一份)
+    void Die();
+    bool IsDead() const { return m_CurrentState == AnimState::DEAD; }
+
     // 取得瑪利歐資訊給外部 (如 AppUpdate) 使用
     Rect GetFeetRect(float worldOffset) const;
     std::shared_ptr<AnimatedCharacter> GetCharacter() const { return m_Mario; }
+
+    // 座標與顯示設定 (來自第一份，App 會頻繁呼叫)
     glm::vec2 GetPosition() const { return m_Mario->GetPosition(); }
+    void SetPosition(const glm::vec2& pos) { m_Mario->SetPosition(pos); }
+    void SetVisible(bool visible) { m_Mario->SetVisible(visible); }
+
     float GetVelocityY() const { return m_Velocity.y; }
 
     // 🌟 讓外部 (如栗子球碰撞判定) 知道瑪利歐現在是不是無敵星狀態
@@ -55,6 +66,9 @@ private:
     float m_ChangeTimer = 0.0f;
     bool m_IsOnGround = true;
 
+    // 💀 死亡動畫相關計時器 (來自第一份)
+    float m_DeathTimer = 0.0f;
+
     // ==========================================
     // 🌟 無敵星星專屬變數
     // ==========================================
@@ -63,20 +77,16 @@ private:
     float m_StarAnimTimer = 0.0f;     // 控制閃爍切換的速度
     int m_StarColorIndex = 0;         // 顏色狀態：0=正常, 1=star1, 2=star2, 3=star3
 
-    // 🌟 新增：手動控制跑步動畫的計時器與幀數 (解決星星閃爍重置問題)
+    // 🌟 手動控制跑步動畫的計時器與幀數 (解決星星閃爍重置問題)
     float m_RunAnimTimer = 0.0f;
     int m_RunFrameIndex = 0;
 
     // --- 物理與位置變數 ---
     glm::vec2 m_Velocity = { 0.0f, 0.0f };
 
-    // 🌟 加速你的瑪利歐！(原本 3.0f)
+    // 🌟 更新物理常數 (以第二份為主，手感更好)
     float m_WalkSpeed = 5.5f;
-
-    // 🌟 增強大腿肌力！(原本 10.0f，為了抵抗更大的重力，起跳要給多一點)
     float m_JumpImpulse = 24.0f;
-
-    // 🌟 回歸地球重力！(原本 0.4f，改大後掉下來會非常俐落，不會飄在空中)
     float m_Gravity = 1.0f;
 
     float m_WarpStartY = 0.0f;
@@ -92,6 +102,9 @@ private:
     std::vector<std::string> m_BigRunImages;
     std::vector<std::string> m_BigJumpImages;
     std::vector<std::string> m_BigCrouchImages;   // 大隻專屬蹲下圖
+
+    // 💀 死亡圖片陣列 (來自第一份)
+    std::vector<std::string> m_DeadImages;
 
     // 🌟 星星 1 陣列
     std::vector<std::string> m_Star1_SmallStandImages;
@@ -136,7 +149,7 @@ private:
     std::vector<std::string>* m_CurrentRunImages = nullptr;
     std::vector<std::string>* m_CurrentJumpImages = nullptr;
     std::vector<std::string>* m_CurrentCrouchImages = nullptr;
-    std::vector<std::string>* m_CurrentChangeImages = nullptr; // 🌟 負責切換一般變身還是彩色變身
+    std::vector<std::string>* m_CurrentChangeImages = nullptr;
 };
 
 #endif // PLAYER_HPP
