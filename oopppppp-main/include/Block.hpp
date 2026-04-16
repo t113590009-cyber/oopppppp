@@ -19,8 +19,8 @@ public:
     enum class ItemType {
         NONE,       // 空的 (只會彈一下或碎掉)
         MUSHROOM,   // 裝蘑菇
-        STAR        // 裝無敵星星
-        // COIN     // 未來如果要擴充可以加在這裡
+        STAR,        // 裝無敵星星
+        COIN        //裝金幣
     };
 
     Block(Type type, glm::vec2 startPos, int interval = 150);

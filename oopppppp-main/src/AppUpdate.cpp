@@ -4,9 +4,11 @@
 #include "Util/Logger.hpp"
 #include "Util/Time.hpp"
 
-// 🌟 記得要把這兩個道具的標頭檔都引進來！
+// 🌟 確保所有道具與特效的標頭檔都有引入
 #include "Mushroom.hpp"
 #include "Star.hpp"
+#include "Coin.hpp"
+#include "ScoreEffect.hpp"
 
 void App::Update() {
     float dt = Util::Time::GetDeltaTime();
@@ -37,7 +39,7 @@ void App::Update() {
         m_Player->Update(m_WorldOffset, m_Collision, m_Blocks, dt);
 
         // ==========================================
-        // 🌟 融合一：偵測瑪利歐死亡，並加上延遲再顯示 FAIL 畫面
+        // 💀 偵測瑪利歐死亡，並加上延遲再顯示 FAIL 畫面
         // ==========================================
         if (m_Player->IsDead() && m_FailScreen) {
             m_DeathTimer += dt; // 開始計時
@@ -62,12 +64,11 @@ void App::Update() {
         }
 
         // ==========================================
-        // 🎁 融合二：道具系統 - 根據方塊內容物生成對應道具！
+        // 🎁 道具生成：根據方塊內容物生成對應道具 (你剛剛不小心刪掉的這段補回來了！)
         // ==========================================
         for (auto& block : m_Blocks) {
             if (block->HasJustSpawnedItem()) {
-
-                Block::ItemType type = block->GetItemType(); // 🌟 看看肚子裡裝什麼
+                Block::ItemType type = block->GetItemType();
 
                 if (type == Block::ItemType::MUSHROOM) {
                     auto mushroom = std::make_shared<Mushroom>(block->GetPosition().x, block->GetPosition().y);
@@ -75,16 +76,26 @@ void App::Update() {
                     m_Items.push_back(std::move(mushroom));
                 }
                 else if (type == Block::ItemType::STAR) {
-                    // 🌟 如果是星星，就生出星星！
                     auto star = std::make_shared<Star>(block->GetPosition().x, block->GetPosition().y);
                     m_Root.AddChild(star);
                     m_Items.push_back(std::move(star));
+                }
+                else if (type == Block::ItemType::COIN) {
+                    // 🌟 生成方塊金幣 (type = 0)
+                    auto coin = std::make_shared<Coin>(block->GetPosition().x, block->GetPosition().y, 0);
+                    m_Root.AddChild(coin);
+                    m_Items.push_back(std::move(coin));
+
+                    // 🌟 噴出金幣的同時，在方塊頭上噴出 200 分！
+                    auto score = std::make_shared<ScoreEffect>(200, block->GetPosition().x, block->GetPosition().y + 50.0f);
+                    m_Root.AddChild(score->GetDrawable());
+                    m_ScoreEffects.push_back(score);
                 }
             }
         }
 
         // ==========================================
-        // 🌟 融合二：把地板水管跟天空磚塊打包成總名單 (給道具物理用)
+        // 🧱 打包地形碰撞箱 (給道具物理用) - 確保這段只出現一次！
         // ==========================================
         std::vector<Rect> allObstacles = m_Collision.GetObstacles();
         for (const auto& block : m_Blocks) {
@@ -95,21 +106,31 @@ void App::Update() {
         }
 
         // ==========================================
-        // 🍄 融合二：道具物理更新與瑪利歐吃道具判定
+        // 🍄 道具更新與瑪利歐「吃相」判定 - 確保這段只出現一次！
         // ==========================================
         for (auto it = m_Items.begin(); it != m_Items.end(); ) {
 
-            // 讓道具 (蘑菇或星星) 在磚塊上走動或彈跳
+            // 讓道具 (蘑菇/星星/金幣) 更新狀態
             (*it)->Update(dt, m_WorldOffset, allObstacles);
 
-            Rect marioRect = m_Player->GetFeetRect(m_WorldOffset);
+            // 🌟 取得瑪利歐的「身體」碰撞箱，而不是腳底板！
+            glm::vec2 pPos = m_Player->GetPosition();
+            Rect marioBodyRect = { m_WorldOffset + pPos.x - 18.0f, pPos.y - 24.0f, 36.0f, 48.0f };
             Rect itemRect = (*it)->GetRect(m_WorldOffset);
 
-            // 碰到道具的判定
-            if (CollisionHandler::CheckCollision(marioRect, itemRect)) {
-                (*it)->ApplyEffect(m_Player.get()); // 呼叫變大 (蘑菇) 或 無敵 (星星)！
+            // 🌟 瑪利歐的身體碰到道具了！
+            if (CollisionHandler::CheckCollision(marioBodyRect, itemRect)) {
+                (*it)->ApplyEffect(m_Player.get()); // 呼叫效果 (變大/無敵/吃金幣)
+
+                // 如果道具是地圖金幣被吃掉，原地噴出 200 分！
+                if ((*it)->IsDestroyed()) {
+                    auto score = std::make_shared<ScoreEffect>(200, itemRect.x + 15.0f, itemRect.y + 40.0f);
+                    m_Root.AddChild(score->GetDrawable());
+                    m_ScoreEffects.push_back(score);
+                }
             }
 
+            // 清理已經吃掉 (或掉下深淵) 的道具
             if ((*it)->IsDestroyed()) {
                 m_Root.RemoveChild(*it);
                 it = m_Items.erase(it);
@@ -121,6 +142,22 @@ void App::Update() {
 
         if (m_Castle) {
             m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
+        }
+
+        // ==========================================
+        // 💯 分數特效更新與清理
+        // ==========================================
+        for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
+            (*it)->Update(dt, m_WorldOffset);
+
+            // 如果時間到了，就從畫面上移除並刪除記憶體
+            if ((*it)->IsDone()) {
+                m_Root.RemoveChild((*it)->GetDrawable());
+                it = m_ScoreEffects.erase(it);
+            }
+            else {
+                ++it;
+            }
         }
 
         // --- 🍄 栗子球分段生成邏輯 ---
@@ -164,6 +201,13 @@ void App::Update() {
                     // 🌟 終極無敵判定：如果是星星狀態，直接秒殺怪物！
                     if (m_Player->IsStarMode()) {
                         (*it)->Stomp();
+
+                        // 🌟 星星撞死怪物也加分
+                        float gX = goombaScreenRect.x + m_WorldOffset + 18.0f;
+                        float gY = goombaScreenRect.y + 24.0f;
+                        auto score = std::make_shared<ScoreEffect>(100, gX, gY);
+                        m_Root.AddChild(score->GetDrawable());
+                        m_ScoreEffects.push_back(score);
                     }
                     else {
                         float marioBottom = pPos.y - 25.0f;
@@ -172,9 +216,16 @@ void App::Update() {
                         // 判斷是否踩在怪物頭上
                         if (m_Player->GetVelocityY() < 0.0f && marioBottom > goombaCenter) {
                             (*it)->Stomp();
+
+                            // 🌟 踩死怪物，噴出 100 分！
+                            float gX = goombaScreenRect.x + m_WorldOffset + 18.0f;
+                            float gY = goombaScreenRect.y + 24.0f;
+                            auto score = std::make_shared<ScoreEffect>(100, gX, gY);
+                            m_Root.AddChild(score->GetDrawable());
+                            m_ScoreEffects.push_back(score);
                         }
                         else {
-                            m_Player->TakeDamage(); // 呼叫 TakeDamage 而非直接死掉，支援大瑪利歐降級！
+                            m_Player->TakeDamage();
                         }
                     }
                 }

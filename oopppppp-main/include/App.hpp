@@ -13,6 +13,7 @@
 // 🌟 補上道具系統的標頭檔 (合併自第二份程式碼)
 #include "Item.hpp"
 #include "Mushroom.hpp"
+#include "ScoreEffect.hpp"
 
 #include <memory>
 #include <vector>
@@ -63,6 +64,9 @@ private:
     // 🌟 道具管理系統 (合併自第二份程式碼)
     // ==========================================
     std::vector<std::shared_ptr<Item>> m_Items;     // 用來存放畫面上所有的道具
+
+    //分數系統
+    std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects;
 
     // ==========================================
     // 💀 失敗畫面 UI 與延遲計時器 (保留第一份程式碼)

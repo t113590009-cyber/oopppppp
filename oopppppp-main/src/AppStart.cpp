@@ -1,5 +1,6 @@
 #include "App.hpp"
 #include "Util/Logger.hpp"
+#include "Coin.hpp"
 
 void App::Start() {
     LOG_TRACE("Start");
@@ -108,6 +109,39 @@ void App::Start() {
     m_Collision.AddObstacle(15192.0f, -264.0f, 336.0f, 144.0f);
 
     // ==========================================
+        // 🪙 新增：固定金幣放置工具
+        // ==========================================
+    auto AddFixedCoin = [&](float absoluteX, float absoluteY) {
+        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1); // 1 = 懸浮金幣
+        m_Root.AddChild(coin);
+        m_Items.push_back(coin);
+        };
+
+    // ==========================================
+    // 💰 經典 1-1 地下室隱藏金幣區
+    // ==========================================
+    // 根據你的物理牆壁設定，地下室中間突起的磚塊台起點在 X: 15192.0f
+    // 磚塊台頂部高度大約在 Y: -120.0f，所以我們金幣中心點從 Y: -96.0f 開始往上疊
+
+    float ugStartX = 15192.0f + 24.0f; // 加上 24.0f 讓金幣對齊磚塊的中心點
+    float ugBaseY = -96.0f;            // 底層金幣的高度
+
+    // 1️⃣ 下層 (7 枚金幣，鋪滿磚塊台)
+    for (int i = 0; i < 7; ++i) {
+        AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY);
+    }
+
+    // 2️⃣ 中層 (7 枚金幣，疊在下層正上方)
+    for (int i = 0; i < 7; ++i) {
+        AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 96.0f); // Y 往上提一個磚塊 (48.0f)
+    }
+
+    // 3️⃣ 上層 (5 枚金幣，左右各留空一格，所以 i 從 1 開始到 5)
+    for (int i = 1; i <= 5; ++i) {
+        AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 192.0f); // Y 往上提兩個磚塊 (96.0f)
+    }
+
+    // ==========================================
     // 🍄 經典 1-1 關卡生成區 (視覺磚塊與水管)
     // ==========================================
     const float TILE = 48.0f;
@@ -139,7 +173,7 @@ void App::Start() {
     // 這是第一個問號方塊 (gridX = 16)，我們塞入蘑菇！
     AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::MUSHROOM);
 
-    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y);
+    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::COIN);
 
     // 這是第二個問號方塊 (gridX = 21)，我們塞入星星！
     AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::STAR);
@@ -185,6 +219,9 @@ void App::Start() {
     AddBlock(Block::Type::BRICK_FRAGILE, 169, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 170, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 171, ROW_1_Y);
+
+
+
 
     // --- (最後把瑪利歐加進去，確保他在最上層) ---
     m_Root.AddChild(m_Player->GetCharacter());
