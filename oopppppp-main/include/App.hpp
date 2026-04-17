@@ -56,6 +56,9 @@ private:
     std::unique_ptr<Map> m_Map;
     std::shared_ptr<Character> m_Castle;
 
+    std::shared_ptr<Character> m_Flagpole; // 🚩 新增：旗桿掛架 (單純圖片)
+    std::shared_ptr<Character> m_Flag;     // 🏳️ 新增：旗子掛架 (單純圖片)
+
     // 🛡️ 磚塊陣列
     std::vector<std::shared_ptr<Block>> m_Blocks;
 
@@ -72,7 +75,7 @@ private:
     int m_SpawnPhase = 0;
 
     // ==========================================
-    // 🌟 道具管理系統 
+    // 🌟 道具管理系統
     // ==========================================
     std::vector<std::shared_ptr<Item>> m_Items; // 存放畫面上所有的道具 (蘑菇/星星/金幣)
 

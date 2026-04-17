@@ -26,6 +26,10 @@ void App::Update() {
 
             if (m_Castle) m_Castle->SetVisible(true);
 
+            // 🚩 新增：按 Enter 後顯示旗桿與旗子
+            if (m_Flagpole) m_Flagpole->SetVisible(true);
+            if (m_Flag) m_Flag->SetVisible(true);
+
             for (auto& block : m_Blocks) {
                 if (block->GetCharacter()) {
                     block->GetCharacter()->SetVisible(true);
@@ -39,7 +43,7 @@ void App::Update() {
     // --- 2. 遊戲邏輯 ---
     else {
         // ==========================================
-        // ⏰ 時間倒數與 UI 更新 
+        // ⏰ 時間倒數與 UI 更新
         // ==========================================
         // 瑪利歐遊戲裡的時間流逝速度比現實快大約 2.5 倍
         if (m_CurrentState != State::END && !m_Player->IsDead()) {
@@ -193,6 +197,17 @@ void App::Update() {
 
         if (m_Castle) {
             m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
+        }
+
+        // ==========================================
+        // 🚩 更新旗桿與旗子的位置，讓它們跟著捲動
+        // ==========================================
+        if (m_Flagpole) {
+            m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, -95.0f });
+        }
+        if (m_Flag) {
+            // 🌟 旗子只更新 X 座標讓它捲動，Y 座標保留原本的高度 (這樣之後才能實作滑下來)
+            m_Flag->SetPosition({ 9120.0f - m_WorldOffset, m_Flag->GetPosition().y });
         }
 
         // ==========================================

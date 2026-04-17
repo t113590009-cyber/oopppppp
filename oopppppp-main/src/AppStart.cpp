@@ -12,6 +12,25 @@ void App::Start() {
 
     m_Map->Init(m_Root);
 
+    // ==========================================
+    // 🚩 旗桿與旗子初始化
+    // ==========================================
+    // 1. 旗桿 (elv_win)
+    m_Flagpole = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/elv_win.png");
+    m_Flagpole->m_Transform.scale = { 3.0f, 3.0f };
+    m_Flagpole->SetZIndex(1); // 設在瑪利歐後面
+    m_Flagpole->SetPosition({ 9147.0f, -95.0f }); // ⚠️ X 座標請依你的地圖實際狀況微調
+    m_Flagpole->SetVisible(false);
+    m_Root.AddChild(m_Flagpole);
+
+    // 2. 旗子 (flag_win)
+    m_Flag = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/flag_win.png");
+    m_Flag->m_Transform.scale = { 3.0f, 3.0f };
+    m_Flag->SetZIndex(2); // 設在旗桿前面一點點
+    m_Flag->SetPosition({ 9120.0f, -22.0f });
+    m_Flag->SetVisible(false);
+    m_Root.AddChild(m_Flag);
+
     // 🌟 城堡初始化 (使用第一份的圖片路徑)
     m_Castle = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Background/stage1-1/castle1_1_win.png");
     m_Castle->m_Transform.scale = { 3.0f, 3.0f }; // 配合地圖比例放大
