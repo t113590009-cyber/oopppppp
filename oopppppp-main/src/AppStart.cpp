@@ -220,11 +220,19 @@ void App::Start() {
     AddBlock(Block::Type::QUESTION, 170, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 171, ROW_1_Y);
 
-
-
-
     // --- (最後把瑪利歐加進去，確保他在最上層) ---
     m_Root.AddChild(m_Player->GetCharacter());
+
+    // ==========================================
+    // 🌟 載入上方 UI 並加進 m_Root
+    // ==========================================
+    m_TopUI = std::make_shared<TopUI>();
+    for (auto& uiElem : m_TopUI->GetDrawables()) {
+        m_Root.AddChild(uiElem);
+    }
+
+    // 🌟 新增這行：因為還在「封面」，所以先把它全數隱藏！
+    m_TopUI->SetVisible(false);
 
     m_CurrentState = State::UPDATE;
 }

@@ -181,10 +181,12 @@ void Player::GrowUp() {
 void Player::Die() {
     if (m_CurrentState != AnimState::DEAD) {
         m_CurrentState = AnimState::DEAD;
-        // 換上死亡圖片
         m_Mario->SetAnimation(m_DeadImages);
         m_Mario->Play();
-        // 重置物理狀態，準備彈飛
+
+        // 🌟 修正：確保死亡換圖時，瑪利歐也不會縮水！
+        m_Mario->m_Transform.scale = { 3.0f, 3.0f };
+
         m_Velocity.x = 0.0f;
         m_Velocity.y = 15.0f;
         m_DeathTimer = 0.0f;
@@ -192,7 +194,6 @@ void Player::Die() {
 }
 
 void Player::TakeDamage() {
-    // 無敵狀態下受傷，完全不會觸發變小或死亡
     if (m_IsStarMode || m_IsInvincible || m_CurrentState == AnimState::CHANGING) return;
 
     if (m_IsBig) {
@@ -207,7 +208,7 @@ void Player::TakeDamage() {
     }
     else {
         LOG_DEBUG("MARIO DIED! GAME OVER!");
-        Die(); // 💀 結合 V1，觸發死亡動畫與彈跳
+        Die();
     }
 }
 
@@ -223,31 +224,24 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     glm::vec2 currentPos = m_Mario->GetPosition();
 
     // ==========================================
-    // 💀 0. 死亡狀態邏輯 (最高優先級，從 V1 整合)
+    // 💀 0. 死亡狀態邏輯
     // ==========================================
     if (m_CurrentState == AnimState::DEAD) {
         m_DeathTimer += deltaTime;
-        // 停頓 0.5 秒後才開始掉落
         if (m_DeathTimer > 0.5f) {
             m_Velocity.y -= m_Gravity * (deltaTime * 60.0f);
             currentPos.y += m_Velocity.y;
-            m_Mario->m_Transform.scale = { 3.0f, 3.0f }; // 確保面向前方
+            m_Mario->m_Transform.scale = { 3.0f, 3.0f };
         }
         m_Mario->SetPosition(currentPos);
-        return; // 死亡後不再執行後面的邏輯
+        return;
     }
 
-    // ==========================================
-    // 🌟 座標探測器
-    // ==========================================
     if (Util::Input::IsKeyDown(Util::Keycode::P)) {
         float absoluteX = worldOffset + currentPos.x;
         LOG_DEBUG("📍 瑪利歐座標 -> X: {}, Y: {}", absoluteX, currentPos.y);
     }
 
-    // ==========================================
-    // 🌟 手動計算跑步動畫幀數 (防卡幀機制)
-    // ==========================================
     if (m_CurrentState == AnimState::RUN) {
         m_RunAnimTimer += deltaTime;
         if (m_RunAnimTimer >= 0.1f) {
@@ -260,9 +254,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
     }
 
-    // ==========================================
-    // 🌟 無敵星星：快速循環變色邏輯
-    // ==========================================
     if (m_IsStarMode) {
         m_StarTimer -= deltaTime;
         m_StarAnimTimer -= deltaTime;
@@ -305,9 +296,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
     }
 
-    // ==========================================
-    // 💫 變身過場動畫 (CHANGING) & 受傷無敵閃爍
-    // ==========================================
     if (m_CurrentState == AnimState::CHANGING) {
         m_ChangeTimer -= deltaTime;
         if (m_ChangeTimer <= 0.0f) {
@@ -332,9 +320,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
     }
 
-    // ==========================================
-    // 🚇 魔法時空隧道邏輯
-    // ==========================================
     bool isMovingX = false;
     static bool faceRight = true;
     AnimState nextState = m_CurrentState;
@@ -377,9 +362,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         return;
     }
 
-    // ==========================================
-    // 🏃‍♂️ 物理、移動與碰撞邏輯
-    // ==========================================
     if (!m_IsOnGround) {
         nextState = AnimState::JUMP;
     }
@@ -430,7 +412,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     float bodyHeight = m_IsBig ? (isCrouching ? 72.0f : 96.0f) : 48.0f;
     float halfHeight = bodyHeight / 2.0f;
 
-    // 落地時的高度補償 (防亂跳機制)
     if (m_IsOnGround && m_CurrentState != AnimState::CHANGING && nextState != AnimState::CHANGING) {
         float prevHalf = m_IsBig ? (m_CurrentState == AnimState::CROUCHING ? 36.0f : 48.0f) : 24.0f;
         if (prevHalf != halfHeight) {
@@ -447,12 +428,14 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
 
     bool canMove = true;
     for (const auto& obs : collision.GetObstacles()) {
+        if (obs.width == 0 || obs.height == 0) continue; // 🌟 加回幽靈方塊防護
         if (CollisionHandler::CheckCollision(marioBodyBox, obs)) {
             if (currentPos.y - 20.0f < obs.y + obs.height - 2.0f) { canMove = false; break; }
         }
     }
     if (canMove) {
         for (auto& block : blocks) {
+            if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue; // 🌟 加回幽靈方塊防護
             if (CollisionHandler::CheckCollision(marioBodyBox, block->GetHitbox())) {
                 if (currentPos.y - 20.0f < block->GetHitbox().y + block->GetHitbox().height - 2.0f) { canMove = false; break; }
             }
@@ -482,6 +465,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     if (m_Velocity.y > 0.0f) {
         Rect marioHead = { worldOffset + currentPos.x - 10.0f, currentPos.y + headYOffset, 20.0f, 14.0f };
         for (auto& block : blocks) {
+            if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue; // 🌟 加回幽靈方塊防護
             if (CollisionHandler::CheckCollision(marioHead, block->GetHitbox())) {
                 m_Velocity.y = -2.0f;
                 if (m_IsBig) block->Hit(m_IsBig);
@@ -494,18 +478,16 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     if (!m_IsOnGround) m_Velocity.y -= m_Gravity * (deltaTime * 60.0f);
     currentPos.y += m_Velocity.y;
 
-    // 💀 結合 V1：一旦掉進深淵 (-400.0f)，直接觸發死亡！
     if (currentPos.y < -400.0f && m_CurrentState != AnimState::DEAD) {
         Die();
         return;
     }
 
-    // 🌟 結合 V1 的防卡邊緣機制：將腳底判定寬度縮小到 16.0f (X 偏移改為 -8.0f)
     Rect marioFeet = { worldOffset + currentPos.x - 8.0f, currentPos.y + feetYOffset, 16.0f, 5.0f };
-    // 🌟 將預設探測底線加深到 -600.0f，確保不會踩到隱形地板
     float groundHeight = collision.GetGroundHeight(marioFeet, -600.0f);
 
     for (auto& block : blocks) {
+        if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue; // 🌟 加回幽靈方塊防護
         if (CollisionHandler::CheckCollision(marioFeet, block->GetHitbox())) {
             float blockTop = block->GetHitbox().y + block->GetHitbox().height;
             if (blockTop > groundHeight) groundHeight = blockTop;
@@ -520,8 +502,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     else {
         m_IsOnGround = false;
     }
-
-    m_Mario->m_Transform.scale = { (faceRight ? 3.0f : -3.0f), 3.0f };
 
     // ==========================================
     // 🎨 狀態切換與動畫賦值
@@ -549,9 +529,11 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     m_Mario->SetPosition(currentPos);
+
+    // 🌟 修正核心：把縮放移到最後面！不管引擎剛剛怎麼重置動畫，我們最後一刻強制把它放大 3 倍！
+    m_Mario->m_Transform.scale = { (faceRight ? 3.0f : -3.0f), 3.0f };
 }
 
-// 🌟 GetFeetRect 也要配合 Update 內的判定寬度，縮減為 16.0f
 Rect Player::GetFeetRect(float worldOffset) const {
     glm::vec2 currentPos = m_Mario->GetPosition();
     bool isCrouching = (m_CurrentState == AnimState::CROUCHING);
