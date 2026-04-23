@@ -18,7 +18,9 @@ enum class AnimState {
     WARP_DOWN_A,  // 進水管 (下)
     WARP_RIGHT_B, // 進水管 (右)
     WARP_UP_OUT,  // 出水管 (上)
-    DEAD          // 💀 死亡狀態
+    DEAD,          // 💀 死亡狀態
+    FLAG_SLIDE,   // 🚩 抓著旗桿往下滑
+    AUTO_WALK,  // 🚩 新增：落地後自動走向城堡
 };
 
 class Player {
@@ -33,6 +35,16 @@ public:
     void TakeDamage();
     void GetStar();
     void Die(); // 💀 死亡函式
+
+    // ==========================================
+    // 🚩 從 private 移上來的公開函式
+    // ==========================================
+    void StartFlagSlide(float poleWorldX); // 觸發滑行
+    bool IsFlagSliding() const { return m_CurrentState == AnimState::FLAG_SLIDE; }
+
+    // 為了判定碰撞，確保你有這個函式
+    Rect GetRect(float worldOffset) const;
+    // ==========================================
 
     // 取得瑪利歐資訊給外部 (如 AppUpdate) 使用
     Rect GetFeetRect(float worldOffset) const;

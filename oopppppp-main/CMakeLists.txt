@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(GiraffeAdventure)
+project(mario)
 
 set(CMAKE_CXX_STANDARD 17)
 cmake_policy(SET CMP0135 NEW)
@@ -23,7 +23,9 @@ file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp")
 
 # --- 3. 建立執行檔 ---
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} "src/Block.cpp" "src/Goomba.cpp" "src/Mushroom.cpp" "src/Star.cpp" "src/Coin.cpp" "src/ScoreEffect.cpp" "src/TopUI.cpp")
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} "src/Block.cpp" "src/Goomba.cpp" "src/Mushroom.cpp" "src/Star.cpp" "src/Coin.cpp" "src/ScoreEffect.cpp" "src/TopUI.cpp"
+        include/Koopatroopa.hpp
+        src/Koopatroopa.cpp)
 
 # --- 4. 編譯選項設定 ---
 if(MSVC)

@@ -12,6 +12,25 @@ void App::Start() {
 
     m_Map->Init(m_Root);
 
+    // ==========================================
+    // 🚩 旗桿與旗子初始化
+    // ==========================================
+    // 1. 旗桿 (elv_win)
+    m_Flagpole = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/elv_win.png");
+    m_Flagpole->m_Transform.scale = { 3.0f, 3.0f };
+    m_Flagpole->SetZIndex(1); // 設在瑪利歐後面
+    m_Flagpole->SetPosition({ 9147.0f, -95.0f }); // ⚠️ X 座標請依你的地圖實際狀況微調
+    m_Flagpole->SetVisible(false);
+    m_Root.AddChild(m_Flagpole);
+
+    // 2. 旗子 (flag_win)
+    m_Flag = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/flag_win.png");
+    m_Flag->m_Transform.scale = { 3.0f, 3.0f };
+    m_Flag->SetZIndex(2); // 設在旗桿前面一點點
+    m_Flag->SetPosition({ 9120.0f, -22.0f });
+    m_Flag->SetVisible(false);
+    m_Root.AddChild(m_Flag);
+
     // 🌟 城堡初始化 (使用第一份的圖片路徑)
     m_Castle = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Background/stage1-1/castle1_1_win.png");
     m_Castle->m_Transform.scale = { 3.0f, 3.0f }; // 配合地圖比例放大
@@ -109,13 +128,13 @@ void App::Start() {
     m_Collision.AddObstacle(15192.0f, -264.0f, 336.0f, 144.0f);
 
     // ==========================================
-        // 🪙 新增：固定金幣放置工具
-        // ==========================================
+    // 🪙 新增：固定金幣放置工具
+    // ==========================================
     auto AddFixedCoin = [&](float absoluteX, float absoluteY) {
         auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1); // 1 = 懸浮金幣
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
-        };
+    };
 
     // ==========================================
     // 💰 經典 1-1 地下室隱藏金幣區
@@ -159,7 +178,7 @@ void App::Start() {
 
         m_Blocks.push_back(block);
         m_Root.AddChild(block->GetCharacter());
-        };
+    };
 
     auto entrancePipe = std::make_shared<Block>(Block::Type::PIPE_A, glm::vec2(2400.0f, -168.0f));
     m_Blocks.push_back(entrancePipe);

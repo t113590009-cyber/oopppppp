@@ -221,11 +221,34 @@ void Player::GetStar() {
 }
 
 void Player::Update(float& worldOffset, const CollisionHandler& collision, std::vector<std::shared_ptr<Block>>& blocks, float deltaTime) {
+
+    // 🚩 旗桿與過關相關實作
+    if (m_CurrentState == AnimState::FLAG_SLIDE) {
+        m_Mario->m_Transform.scale = { 3.0f, 3.0f };
+        return;
+    }
+
     glm::vec2 currentPos = m_Mario->GetPosition();
 
-    // ==========================================
+    //  1. 優先處理過關狀態 (把剛剛的邏輯貼在這裡！)
+    if (m_CurrentState == AnimState::FLAG_SLIDE) {
+        glm::vec2 pos = m_Mario->GetPosition();
+
+        // 往下掉的速度
+        float slideSpeed = 200.0f * deltaTime;
+        pos.y -= slideSpeed;
+
+        // 偵測是否滑到底部 (這裡的 -264.0f 是地磚高度，請依你的地圖微調)
+        if (pos.y <= -264.0f) {
+            pos.y = -264.0f;
+            // TODO: 等滑到底部後，這裡會再切換成 AUTO_WALK 讓他走向城堡
+        }
+
+        m_Mario->SetPosition(pos);
+        return; // 🌟 關鍵：直接 return，跳過後面的所有鍵盤控制！
+    }
+
     // 💀 0. 死亡狀態邏輯
-    // ==========================================
     if (m_CurrentState == AnimState::DEAD) {
         m_DeathTimer += deltaTime;
         if (m_DeathTimer > 0.5f) {
@@ -542,4 +565,27 @@ Rect Player::GetFeetRect(float worldOffset) const {
     float feetYOffset = -(bodyHeight / 2.0f) - 2.0f;
 
     return { worldOffset + currentPos.x - 8.0f, currentPos.y + feetYOffset, 16.0f, 5.0f };
+}
+
+void Player::StartFlagSlide(float poleWorldX) {
+    if (m_CurrentState == AnimState::DEAD || m_CurrentState == AnimState::FLAG_SLIDE) {
+        return;
+    }
+
+    m_CurrentState = AnimState::FLAG_SLIDE;
+    m_Velocity = {0.0f, 0.0f};
+}
+
+// 🌟 這個是給烏龜/道具判斷碰撞用的
+Rect Player::GetRect(float worldOffset) const {
+    glm::vec2 currentPos = m_Mario->GetPosition();
+    float width = 36.0f;
+    float height = m_IsBig ? 72.0f : 40.0f;
+
+    return {
+        worldOffset + currentPos.x - (width / 2.0f),
+        currentPos.y - (height / 2.0f),
+        width,
+        height
+    };
 }

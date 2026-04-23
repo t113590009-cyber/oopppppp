@@ -10,6 +10,7 @@
 #include "TopUI.hpp"            // 🌟 頂部計分板 UI
 #include "Block.hpp"            // 🛡️ 磚塊系統
 #include "Goomba.hpp"           // ➕ 栗子球系統
+#include "Koopatroopa.hpp"
 
 // 🌟 補上道具系統的標頭檔
 #include "Item.hpp"
@@ -40,9 +41,7 @@ private:
     State m_CurrentState = State::START;
     Util::Renderer m_Root;
 
-    // ==========================================
     // 🌟 遊戲數值與 UI 管理
-    // ==========================================
     int m_Score = 0;           // 總分
     int m_Coins = 0;           // 金幣數
     int m_ComboCount = 0;      // 🌟 踩踏連擊計數器
@@ -56,6 +55,9 @@ private:
     std::unique_ptr<Map> m_Map;
     std::shared_ptr<Character> m_Castle;
 
+    std::shared_ptr<Character> m_Flagpole; // 🚩 新增：旗桿掛架 (單純圖片)
+    std::shared_ptr<Character> m_Flag;     // 🏳️ 新增：旗子掛架 (單純圖片)
+
     // 🛡️ 磚塊陣列
     std::vector<std::shared_ptr<Block>> m_Blocks;
 
@@ -65,25 +67,28 @@ private:
     // 全域捲動位移
     float m_WorldOffset = 0.0f;
 
-    // ==========================================
     // 🍄 栗子球管理系統
-    // ==========================================
     std::vector<std::unique_ptr<Goomba>> m_Goombas;
     int m_SpawnPhase = 0;
 
-    // ==========================================
-    // 🌟 道具管理系統 
-    // ==========================================
+    // 🐢 烏龜陣列 (你加的完全正確！)
+    std::vector<std::shared_ptr<Koopatroopa>> m_Koopatroopas;
+
+    // 🌟 道具管理系統
     std::vector<std::shared_ptr<Item>> m_Items; // 存放畫面上所有的道具 (蘑菇/星星/金幣)
 
     // 分數特效系統
     std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects;
 
-    // ==========================================
     // 💀 失敗畫面 UI 與延遲計時器
-    // ==========================================
     std::shared_ptr<Character> m_FailScreen;
     float m_DeathTimer = 0.0f; // <--- 死亡延遲判定計時器
+
+    // 🚩 過關動畫控制系統
+    bool m_IsLevelClear = false;      // 是否已經碰到旗桿（碰到後停止玩家鍵盤控制）
+    bool m_IsFlagSliding = false;     // 是否正在往下滑
+    bool m_IsWalkingToCastle = false; // 是否正在走向城堡
+    float m_LevelClearTimer = 0.0f;   // 用來控制落地後的停頓或轉圈時間
 };
 
 #endif // APP_HPP

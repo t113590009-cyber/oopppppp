@@ -26,6 +26,10 @@ void App::Update() {
 
             if (m_Castle) m_Castle->SetVisible(true);
 
+            // 🚩 新增：按 Enter 後顯示旗桿與旗子
+            if (m_Flagpole) m_Flagpole->SetVisible(true);
+            if (m_Flag) m_Flag->SetVisible(true);
+
             for (auto& block : m_Blocks) {
                 if (block->GetCharacter()) {
                     block->GetCharacter()->SetVisible(true);
@@ -39,7 +43,7 @@ void App::Update() {
     // --- 2. 遊戲邏輯 ---
     else {
         // ==========================================
-        // ⏰ 時間倒數與 UI 更新 
+        // ⏰ 時間倒數與 UI 更新
         // ==========================================
         // 瑪利歐遊戲裡的時間流逝速度比現實快大約 2.5 倍
         if (m_CurrentState != State::END && !m_Player->IsDead()) {
@@ -180,7 +184,6 @@ void App::Update() {
                     }
                 }
             }
-
             // 清理已經吃掉 (或掉下深淵) 的道具
             if ((*it)->IsDestroyed()) {
                 m_Root.RemoveChild(*it);
@@ -195,9 +198,122 @@ void App::Update() {
             m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
         }
 
-        // ==========================================
+        float dt = Util::Time::GetDeltaTime();
+
+    // 🚩 1. 更新旗桿位置 (處理捲動)
+    if (m_Flagpole) {
+        m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, -95.0f });
+    }
+
+    // ==========================================================
+    // 🚩 2. 觸發過關判定 (只判定一次)
+    // ==========================================================
+        // 1. 改成 GetRect()，用瑪利歐的「全身」去撞旗桿！
+        Rect marioRect = m_Player->GetRect(m_WorldOffset);
+
+        // 2. 判斷是大瑪利歐還是小瑪利歐，給予專屬的旗桿判定
+        Rect flagpoleRect;
+
+        if (marioRect.height > 50.0f) {
+            // 🍄 大瑪利歐專用判定框 (記得加上逗號喔)
+            flagpoleRect = { 9180.0f, -250.0f, 50.0f, 500.0f };
+        } else {
+            // 🍄 小瑪利歐專用判定框
+            flagpoleRect = { 9150.0f, -300.0f, 50.0f, 500.0f };
+        }
+
+    if (!m_IsLevelClear && CollisionHandler::CheckCollision(marioRect, flagpoleRect)) {
+        m_IsLevelClear = true;
+        m_IsFlagSliding = true;
+
+        // 計算分數
+        float hitY = m_Player->GetPosition().y;
+        int flagScore = 100;
+        if (hitY > -100) flagScore = 400;
+        if (hitY > 0)    flagScore = 800;
+        if (hitY > 100)  flagScore = 2000;
+        if (hitY > 150)  flagScore = 5000;
+        m_Score += flagScore;
+
+        // 啟動滑行狀態
+        m_Player->StartFlagSlide(9147.0f - m_WorldOffset);
+
+        // 🌟 關鍵：將旗子與瑪利歐初始化到最高點 (-20.0f 是你說的旗子高度)
+        m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+        m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, -20.0f + 50.0f });
+    }
+
+// 🚩 3. 處理旗子與瑪利歐的同步下滑動畫
+        if (m_Flag) {
+            static bool isBigDuringSlide = false;
+            static bool hasLockedSize = false;
+
+            if (!m_IsFlagSliding && !m_IsLevelClear) {
+                m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+                hasLockedSize = false;
+            }
+            else if (m_IsFlagSliding) {
+                // ✅ 關鍵修正：不再用 Y 座標！直接問瑪利歐的判定框高度
+                if (!hasLockedSize) {
+                    // 大瑪利歐的高度是 72，小瑪利歐是 40
+                    // 這樣不管他被傳送到多高，都不會認錯人！
+                    if (m_Player->GetRect(m_WorldOffset).height > 50.0f) {
+                        isBigDuringSlide = true;
+                    } else {
+                        isBigDuringSlide = false;
+                    }
+                    hasLockedSize = true;
+                }
+
+                glm::vec2 flagPos = m_Flag->GetPosition();
+                if (flagPos.y > -235.0f) {
+                    float nextY = flagPos.y - (300.0f * dt);
+                    m_Flag->SetPosition({ 9120.0f - m_WorldOffset, nextY });
+                    m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, nextY + 40.0f });
+                } else {
+                    // 🌟 落地瞬間
+                    m_IsFlagSliding = false;
+                    std::vector<std::string> runAnims;
+
+                    if (isBigDuringSlide) {
+                        // 🍄 大瑪利歐落地：維持 -216.0f
+                        m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -216.0f });
+                        runAnims = {
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png",
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run2.png",
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run3.png"
+                        };
+                    } else {
+                        // 🐢 小瑪利歐落地：維持 -240.0f
+                        m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -240.0f });
+                        runAnims = {
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run1.png",
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run2.png",
+                            GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run3.png"
+                        };
+                    }
+
+                    m_Player->GetCharacter()->SetAnimation(runAnims, 100);
+                    m_Player->GetCharacter()->Play();
+                }
+            }
+        }
+
+        // 🚩 4. 自動走向城堡 (保持原有大小跑進去)
+        if (m_IsLevelClear && !m_IsFlagSliding) {
+            glm::vec2 pPos = m_Player->GetCharacter()->GetPosition();
+            float castleDoorX = 9436.0f - m_WorldOffset;
+
+            if (pPos.x < castleDoorX) {
+                m_Player->GetCharacter()->SetPosition({ pPos.x + (150.0f * dt), pPos.y });
+                m_Player->GetCharacter()->Play();
+                m_Player->GetCharacter()->m_Transform.scale.x = 3.0f; // 確保臉朝右
+            } else {
+                m_Player->GetCharacter()->SetVisible(false);
+            }
+        }
+
         // 💯 分數特效更新與清理
-        // ==========================================
         for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
             (*it)->Update(dt, m_WorldOffset);
 
@@ -211,7 +327,7 @@ void App::Update() {
             }
         }
 
-        // --- 🍄 栗子球分段生成邏輯 ---
+        // --- 🍄 栗子球與 🐢 烏龜分段生成邏輯 ---
         if (m_SpawnPhase == 0 && m_WorldOffset > 800.0f) {
             auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f);
             m_Root.AddChild(g->GetDrawable());
@@ -224,6 +340,9 @@ void App::Update() {
                 m_Root.AddChild(g->GetDrawable());
                 m_Goombas.push_back(std::move(g));
             }
+            auto turtle = std::make_shared<Koopatroopa>(m_WorldOffset + 1200.0f, -100.0f);
+            m_Root.AddChild(turtle);
+            m_Koopatroopas.push_back(turtle);
             m_SpawnPhase = 2;
         }
         else if (m_SpawnPhase == 2 && m_WorldOffset > 4500.0f) {
@@ -234,6 +353,7 @@ void App::Update() {
             }
             m_SpawnPhase = 3;
         }
+
 
         // --- 🍄 栗子球更新與踩踏判定 ---
         for (auto it = m_Goombas.begin(); it != m_Goombas.end(); ) {
@@ -300,6 +420,15 @@ void App::Update() {
             }
             else {
                 ++it;
+            }
+        }
+
+        // 🐢 烏龜更新與互動判定
+        // ==========================================
+        for (auto& koopa : m_Koopatroopas) {
+            koopa->Update(dt, m_WorldOffset, allObstacles);
+            if (!m_Player->IsDead()) {
+                koopa->Interact(m_Player.get(), m_WorldOffset);
             }
         }
 
