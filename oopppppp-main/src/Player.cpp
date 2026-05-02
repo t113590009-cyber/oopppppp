@@ -115,7 +115,6 @@ Player::Player() {
     m_Mario->SetZIndex(10);
     m_Mario->SetVisible(false);
 }
-
 void Player::RefreshAnimations() {
     if (!m_IsStarMode || m_StarColorIndex == 0) {
         m_CurrentChangeImages = &m_ChangeImages;
@@ -177,39 +176,66 @@ void Player::GrowUp() {
     }
 }
 
-// 💀 從 V1 完美移植的死亡觸發函式
-void Player::Die() {
-    if (m_CurrentState != AnimState::DEAD) {
-        m_CurrentState = AnimState::DEAD;
-        m_Mario->SetAnimation(m_DeadImages);
-        m_Mario->Play();
-
-        // 🌟 修正：確保死亡換圖時，瑪利歐也不會縮水！
-        m_Mario->m_Transform.scale = { 3.0f, 3.0f };
-
-        m_Velocity.x = 0.0f;
-        m_Velocity.y = 15.0f;
-        m_DeathTimer = 0.0f;
-    }
-}
-
 void Player::TakeDamage() {
-    if (m_IsStarMode || m_IsInvincible || m_CurrentState == AnimState::CHANGING) return;
+    // 1. 如果無敵星狀態、正在受傷後的無敵時間中、或已經死了，就免疫傷害！
+    if (m_IsStarMode || m_InvincibleTimer > 0.0f || m_CurrentState == AnimState::DEAD) {
+        return;
+    }
 
     if (m_IsBig) {
+        // 🍄 大變小：
         m_IsBig = false;
-        RefreshAnimations();
-        m_CurrentState = AnimState::CHANGING;
-        m_ChangeTimer = 0.4f;
-        m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
+        m_InvincibleTimer = 2.0f; // 🌟 關鍵：給予 2 秒的無敵時間，避免下一幀立刻又被扣血！
 
-        m_IsInvincible = true;
-        m_InvincibleTimer = 2.0f;
-    }
-    else {
-        LOG_DEBUG("MARIO DIED! GAME OVER!");
+        // 切換回小瑪利歐的圖片組
+        m_CurrentStandImages = &m_SmallStandImages;
+        m_CurrentRunImages = &m_SmallRunImages;
+        m_CurrentJumpImages = &m_SmallJumpImages;
+        m_CurrentCrouchImages = &m_SmallCrouchImages;
+
+        m_Mario->SetAnimation(*m_CurrentStandImages);
+        LOG_DEBUG("Mario: Big -> Small (Invincible for 2s)");
+    } else {
+        // 💀 小瑪利歐：沒救了，觸發死亡
         Die();
     }
+}
+// 💀 完整的死亡觸發函式 (這份檔案只能留這一個！)
+void Player::Die() {
+    // 如果已經是死亡狀態，就不要重複執行
+    if (m_CurrentState == AnimState::DEAD) return;
+
+    m_CurrentState = AnimState::DEAD;
+
+    // 1. 切換成死亡圖片 (如果你的變數名是 m_DeadImages)
+    // 如果編譯器說找不到 m_DeadImages，請確認 Player 構造函式有初始化它
+    if (!m_DeadImages.empty()) {
+        m_Mario->SetAnimation(m_DeadImages);
+    }
+
+    // 2. 🌟 確保死亡時，瑪利歐維持 3 倍大小（不縮水）
+    m_Mario->m_Transform.scale = { 3.0f, 3.0f };
+
+    // 3. 設定死亡噴出的物理效果
+    m_Velocity.x = 0.0f;  // 停止水平移動
+    m_Velocity.y = 15.0f; // 往上彈一下的動作
+}
+
+// 🔄 復活重置：將瑪利歐狀態完全洗白 (這份檔案只能留這一個！)
+void Player::ResetStatus() {
+    m_CurrentState = AnimState::IDLE;
+    m_IsBig = false;
+    m_IsStarMode = false;
+    m_Velocity = { 0.0f, 0.0f }; // 速度歸零
+
+    // 強制重置為小瑪利歐的圖片指標
+    m_CurrentStandImages = &m_SmallStandImages;
+    m_CurrentRunImages = &m_SmallRunImages;
+    m_CurrentJumpImages = &m_SmallJumpImages;
+    m_CurrentCrouchImages = &m_SmallCrouchImages;
+
+    m_Mario->SetAnimation(*m_CurrentStandImages);
+    m_Mario->Play();
 }
 
 void Player::GetStar() {
@@ -327,21 +353,40 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
         m_Mario->Play();
     }
+    if (m_CurrentState == AnimState::CHANGING) {
+        m_ChangeTimer -= deltaTime;
+        if (m_ChangeTimer <= 0.0f) {
+            m_CurrentState = AnimState::IDLE;
+            m_Mario->SetAnimation(*m_CurrentStandImages);
+        }
+        m_Mario->Play();
+    }
 
-    if (m_IsInvincible && !m_IsStarMode) {
+    // ==========================================
+    // 👇 貼上這段新的無敵倒數與閃爍邏輯！
+    // ==========================================
+    if (m_InvincibleTimer > 0.0f && !m_IsStarMode) {
         m_InvincibleTimer -= deltaTime;
         m_BlinkTimer += deltaTime;
+
+        // 每 0.1 秒閃爍一次
         if (m_BlinkTimer > 0.1f) {
             static bool blinkToggle = true;
             blinkToggle = !blinkToggle;
             m_Mario->SetVisible(blinkToggle);
             m_BlinkTimer = 0.0f;
         }
+
+        // 無敵時間結束時，確保瑪利歐顯示出來
         if (m_InvincibleTimer <= 0.0f) {
-            m_IsInvincible = false;
-            m_Mario->SetVisible(true);
+            m_InvincibleTimer = 0.0f;
+            m_IsInvincible = false; // 保險起見同步關閉舊變數
+            if (m_CurrentState != AnimState::DEAD) {
+                m_Mario->SetVisible(true);
+            }
         }
     }
+    // ==========================================
 
     bool isMovingX = false;
     static bool faceRight = true;

@@ -42,9 +42,30 @@ void App::Update() {
     }
     // --- 2. 遊戲邏輯 ---
     else {
-        // ==========================================
+        // 💀 修正：這裡只能檢查 IsDead()！
+        // 如果只寫 !m_Player->IsBig()，大馬力歐一變小就會被判定死亡重置。
+        if (m_Player->IsDead()) {
+            m_DeathTimer += dt;
+            if (m_DeathTimer > 2.5f) {
+                m_Lives--;
+                m_DeathTimer = 0.0f;
+                if (m_Lives > 0) {
+                    ResetLevel(); // 只有小馬力歐狀態死亡才會進到這裡重置
+                    return;
+                } else {
+                    m_CurrentState = State::END;
+                    return;
+                }
+            }
+            m_Root.Update();
+            return;
+        }
+
+        // 🕳️ 深淵判定：也要確保還沒死才觸發
+        if (!m_Player->IsDead() && m_Player->GetPosition().y < -400.0f) {
+            m_Player->Die();
+        }
         // ⏰ 時間倒數與 UI 更新
-        // ==========================================
         // 瑪利歐遊戲裡的時間流逝速度比現實快大約 2.5 倍
         if (m_CurrentState != State::END && !m_Player->IsDead()) {
             m_GameTime -= dt * 2.5f;
@@ -424,7 +445,6 @@ void App::Update() {
         }
 
         // 🐢 烏龜更新與互動判定
-        // ==========================================
         for (auto& koopa : m_Koopatroopas) {
             koopa->Update(dt, m_WorldOffset, allObstacles);
             if (!m_Player->IsDead()) {
@@ -439,5 +459,81 @@ void App::Update() {
         m_CurrentState = State::END;
     }
 
+
     m_Root.Update();
+}
+void App::ResetLevel() {
+    m_WorldOffset = 0.0f; // 鏡頭歸零
+    m_GameTime = 400.0f;  // 時間恢復
+
+    // 1. 玩家狀態與位置歸零
+    if (m_Player) {
+        m_Player->ResetStatus();
+        if (m_Player->GetCharacter()) {
+            m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
+            m_Player->GetCharacter()->SetVisible(true);
+        }
+    }
+
+    // 2. 地圖背景歸零
+    if (m_Map) m_Map->Update(0.0f);
+
+    // ==========================================
+    // 🧹 第一階段：大掃除 (清除畫面上所有舊的動態物件)
+    // ==========================================
+
+    // 🍄 清除栗子球
+    for (auto& goomba : m_Goombas) {
+        if (goomba) m_Root.RemoveChild(goomba->GetDrawable());
+    }
+    m_Goombas.clear();
+
+    // 🐢 清除烏龜
+    for (auto& koopa : m_Koopatroopas) {
+        if (koopa) m_Root.RemoveChild(koopa);
+    }
+    m_Koopatroopas.clear();
+
+    // ✨ 清除分數特效
+    for (auto& effect : m_ScoreEffects) {
+        if (effect) m_Root.RemoveChild(effect->GetDrawable());
+    }
+    m_ScoreEffects.clear();
+
+    // 🌟 清除畫面上所有掉落的道具 (香菇、星星、金幣)
+    for (auto& item : m_Items) {
+        if (item) m_Root.RemoveChild(item);
+    }
+    m_Items.clear();
+
+    // 🧱 清除畫面上所有舊的磚塊
+    for (auto& block : m_Blocks) {
+        if (block && block->GetCharacter()) {
+            m_Root.RemoveChild(block->GetCharacter());
+        }
+    }
+    m_Blocks.clear();
+
+    // 🚩 重置雜項狀態
+    m_SpawnPhase = 0; // 重置怪物生成進度
+    if (m_Flagpole) m_Flagpole->SetVisible(false);
+    if (m_Flag) m_Flag->SetPosition({ 9120.0f, -22.0f });
+    if (m_Castle) m_Castle->SetVisible(false);
+
+    // ==========================================
+    // ✨ 第二階段：重生！呼叫兵工廠重建關卡
+    // ==========================================
+    LoadLevelObjects(); // 🌟 關鍵：呼叫你在 AppStart.cpp 寫好的生成函式！
+
+    // ==========================================
+    // 🌟 第三階段：防呆機制 (確保引擎有把它們畫出來)
+    // ==========================================
+    for (auto& block : m_Blocks) {
+        if (block && block->GetCharacter()) {
+            block->GetCharacter()->SetVisible(true);
+        }
+    }
+    for (auto& item : m_Items) {
+        if (item) item->SetVisible(true);
+    }
 }
