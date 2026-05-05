@@ -15,7 +15,7 @@ void App::Start() {
     m_Flagpole = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/elv_win.png");
     m_Flagpole->m_Transform.scale = { 3.0f, 3.0f };
     m_Flagpole->SetZIndex(1);
-    m_Flagpole->SetPosition({ 9147.0f, -95.0f });
+    m_Flagpole->SetPosition({ 9147.0f, 6.0f });
     m_Flagpole->SetVisible(false);
     m_Root.AddChild(m_Flagpole);
 

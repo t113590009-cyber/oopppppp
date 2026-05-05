@@ -223,7 +223,7 @@ void App::Update() {
 
     // 🚩 1. 更新旗桿位置 (處理捲動)
     if (m_Flagpole) {
-        m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, -95.0f });
+        m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, 6.0f });
     }
 
     // ==========================================================
@@ -514,19 +514,28 @@ void App::ResetLevel() {
     }
     m_Blocks.clear();
 
-    // 🚩 重置雜項狀態
+    // 🚩 修正重點：旗桿與終點物件重置 (確保它們出現並在對的位置)
+    if (m_Flagpole) {
+        m_Flagpole->SetPosition({ 9147.0f, -95.0f }); // 恢復初始高度
+        m_Flagpole->SetVisible(true);                 // 確保顯示
+    }
+    if (m_Flag) {
+        m_Flag->SetPosition({ 9110.0f, 150.0f });    // 恢復到桿頂位置
+        m_Flag->SetVisible(true);                    // 確保顯示
+    }
+    if (m_Castle) {
+        m_Castle->SetVisible(true);                  // 確保城堡也還在
+    }
+
     m_SpawnPhase = 0; // 重置怪物生成進度
-    if (m_Flagpole) m_Flagpole->SetVisible(false);
-    if (m_Flag) m_Flag->SetPosition({ 9120.0f, -22.0f });
-    if (m_Castle) m_Castle->SetVisible(false);
 
     // ==========================================
     // ✨ 第二階段：重生！呼叫兵工廠重建關卡
     // ==========================================
-    LoadLevelObjects(); // 🌟 關鍵：呼叫你在 AppStart.cpp 寫好的生成函式！
+    LoadLevelObjects(); // 🌟 重新生成所有方塊與怪物
 
     // ==========================================
-    // 🌟 第三階段：防呆機制 (確保引擎有把它們畫出來)
+    // 🌟 第三階段：防呆機制 (確保所有物件都是可見的)
     // ==========================================
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) {
