@@ -19,8 +19,8 @@ enum class AnimState {
     WARP_RIGHT_B, // 進水管 (右)
     WARP_UP_OUT,  // 出水管 (上)
     DEAD,          // 💀 死亡狀態
-    FLAG_SLIDE,   // 🚩 抓著旗桿往下滑
-    AUTO_WALK,  // 🚩 新增：落地後自動走向城堡
+    FLAG_SLIDE,   // 抓著旗桿往下滑
+    AUTO_WALK,  // 落地後自動走向城堡
 };
 
 class Player {
@@ -36,15 +36,11 @@ public:
     void GetStar();
     void Die(); // 💀 死亡函式
 
-    // ==========================================
-    // 🚩 從 private 移上來的公開函式
-    // ==========================================
     void StartFlagSlide(float poleWorldX); // 觸發滑行
     bool IsFlagSliding() const { return m_CurrentState == AnimState::FLAG_SLIDE; }
 
     // 為了判定碰撞，確保你有這個函式
     Rect GetRect(float worldOffset) const;
-    // ==========================================
 
     // 取得瑪利歐資訊給外部 (如 AppUpdate) 使用
     Rect GetFeetRect(float worldOffset) const;
@@ -55,8 +51,10 @@ public:
     bool IsStarMode() const { return m_IsStarMode; }
     bool IsOnGround() const { return m_IsOnGround; }
 
-    // 🌟 補上這個！讓 AppUpdate 知道瑪利歐死了沒，用來觸發 Fail 畫面
+    // 讓 AppUpdate 知道瑪利歐死了沒，用來觸發 Fail 畫面 (保留原本的)
     bool IsDead() const { return m_CurrentState == AnimState::DEAD; }
+    void ResetStatus(); // 🌟 復活用的重置函式保留在這裡
+    bool IsBig() const { return m_IsBig; }
 
 private:
     void RefreshAnimations();
@@ -72,7 +70,7 @@ private:
     float m_ChangeTimer = 0.0f;
     bool m_IsOnGround = true;
 
-    // 🌟 補上這個！瑪利歐專屬的死亡計時器 (控制掉落延遲)
+    // 瑪利歐專屬的死亡計時器 (控制掉落延遲)
     float m_DeathTimer = 0.0f;
 
     // ==========================================

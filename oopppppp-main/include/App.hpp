@@ -47,6 +47,9 @@ private:
     int m_ComboCount = 0;      // 🌟 踩踏連擊計數器
     int m_Lives = 3;           // 🌟 瑪利歐的生命數
     float m_GameTime = 400.0f; // 瑪利歐經典的 400 秒倒數
+    float m_DeathTimer = 0.0f; // 💀 控制死亡動畫播多久的計時器
+    void ResetLevel();         // 🔄 重置關卡用的函式
+    void LoadLevelObjects();   // 重新生成所有磚塊跟怪物
     std::shared_ptr<TopUI> m_TopUI;
 
     // --- ➡️ 重構後的管理者對象 ---
@@ -82,7 +85,6 @@ private:
 
     // 💀 失敗畫面 UI 與延遲計時器
     std::shared_ptr<Character> m_FailScreen;
-    float m_DeathTimer = 0.0f; // <--- 死亡延遲判定計時器
 
     // 🚩 過關動畫控制系統
     bool m_IsLevelClear = false;      // 是否已經碰到旗桿（碰到後停止玩家鍵盤控制）
