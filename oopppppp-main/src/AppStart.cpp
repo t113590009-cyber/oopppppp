@@ -22,7 +22,7 @@ void App::Start() {
     m_Flag = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/flag_win.png");
     m_Flag->m_Transform.scale = { 3.0f, 3.0f };
     m_Flag->SetZIndex(2);
-    m_Flag->SetPosition({ 9120.0f, -22.0f });
+    m_Flag->SetPosition({ 9120.0f, 180.0f });
     m_Flag->SetVisible(false);
     m_Root.AddChild(m_Flag);
 
