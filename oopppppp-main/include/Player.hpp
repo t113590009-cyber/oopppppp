@@ -18,9 +18,9 @@ enum class AnimState {
     WARP_DOWN_A,  // 進水管 (下)
     WARP_RIGHT_B, // 進水管 (右)
     WARP_UP_OUT,  // 出水管 (上)
-    DEAD,          // 💀 死亡狀態
-    FLAG_SLIDE,   // 抓著旗桿往下滑
-    AUTO_WALK,  // 落地後自動走向城堡
+    DEAD,         // 💀 死亡狀態
+    FLAG_SLIDE,   // 🚩 抓著旗桿往下滑
+    AUTO_WALK,    // 🚩 落地後自動走向城堡
 };
 
 class Player {
@@ -34,27 +34,29 @@ public:
     void GrowUp();
     void TakeDamage();
     void GetStar();
-    void Die(); // 💀 死亡函式
+    void GetFireFlower(); // 🔥 吃火之花變身
+    void Die();           // 💀 死亡函式
 
-    void StartFlagSlide(float poleWorldX); // 觸發滑行
+    // 過關旗桿邏輯
+    void StartFlagSlide(float poleWorldX);
     bool IsFlagSliding() const { return m_CurrentState == AnimState::FLAG_SLIDE; }
 
-    // 為了判定碰撞，確保你有這個函式
+    // 碰撞箱取得
     Rect GetRect(float worldOffset) const;
-
-    // 取得瑪利歐資訊給外部 (如 AppUpdate) 使用
     Rect GetFeetRect(float worldOffset) const;
     std::shared_ptr<AnimatedCharacter> GetCharacter() const { return m_Mario; }
     glm::vec2 GetPosition() const { return m_Mario->GetPosition(); }
     float GetVelocityY() const { return m_Velocity.y; }
 
+    // 狀態讀取
     bool IsStarMode() const { return m_IsStarMode; }
     bool IsOnGround() const { return m_IsOnGround; }
-
-    // 讓 AppUpdate 知道瑪利歐死了沒，用來觸發 Fail 畫面 (保留原本的)
     bool IsDead() const { return m_CurrentState == AnimState::DEAD; }
-    void ResetStatus(); // 🌟 復活用的重置函式保留在這裡
+
+    void ResetStatus(); // 🌟 復活重置
+
     bool IsBig() const { return m_IsBig; }
+    bool IsFire() const { return m_IsFire; } // 🔥 火球狀態
 
 private:
     void RefreshAnimations();
@@ -64,13 +66,14 @@ private:
 
     // --- 狀態變數 ---
     bool m_IsBig = false;
+    bool m_IsFire = false;
     bool m_IsInvincible = false;
     float m_InvincibleTimer = 0.0f;
     float m_BlinkTimer = 0.0f;
     float m_ChangeTimer = 0.0f;
     bool m_IsOnGround = true;
 
-    // 瑪利歐專屬的死亡計時器 (控制掉落延遲)
+    // 瑪利歐專屬的死亡計時器
     float m_DeathTimer = 0.0f;
 
     // ==========================================
@@ -105,6 +108,13 @@ private:
     std::vector<std::string> m_BigJumpImages;
     std::vector<std::string> m_BigCrouchImages;
 
+    // 🔥 火球瑪利歐專屬動畫陣列
+    std::vector<std::string> m_FireStandImages;
+    std::vector<std::string> m_FireRunImages;
+    std::vector<std::string> m_FireJumpImages;
+    std::vector<std::string> m_FireCrouchImages;
+
+    // 星星狀態陣列
     std::vector<std::string> m_Star1_SmallStandImages;
     std::vector<std::string> m_Star1_SmallRunImages;
     std::vector<std::string> m_Star1_SmallJumpImages;
@@ -139,7 +149,7 @@ private:
     std::vector<std::string> m_Star1_ChangeImages;
     std::vector<std::string> m_Star2_ChangeImages;
     std::vector<std::string> m_Star3_ChangeImages;
-    std::vector<std::string> m_DeadImages; // 💀 死亡圖片
+    std::vector<std::string> m_DeadImages;
 
     std::vector<std::string>* m_CurrentStandImages = nullptr;
     std::vector<std::string>* m_CurrentRunImages = nullptr;

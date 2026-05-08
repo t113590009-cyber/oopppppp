@@ -27,6 +27,18 @@ Player::Player() {
     m_BigCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/squat.png" };
 
     // ==========================================
+    // 🔥 載入火球狀態 (Fire) 的瑪利歐
+    // ==========================================
+    m_FireStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/stand.png" };
+    m_FireRunImages = {
+        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png",
+        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run2.png",
+        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run3.png"
+    };
+    m_FireJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/jump.png" };
+    m_FireCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/squat.png" };
+
+    // ==========================================
     // ⭐ 載入星星狀態 1, 2, 3 (Star1 ~ Star3)
     // ==========================================
     m_Star1_SmallStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/stand.png" };
@@ -115,10 +127,18 @@ Player::Player() {
     m_Mario->SetZIndex(10);
     m_Mario->SetVisible(false);
 }
+
 void Player::RefreshAnimations() {
     if (!m_IsStarMode || m_StarColorIndex == 0) {
         m_CurrentChangeImages = &m_ChangeImages;
-        if (m_IsBig) {
+        // 🔥 優先判斷是否為火球狀態
+        if (m_IsFire) {
+            m_CurrentRunImages = &m_FireRunImages;
+            m_CurrentStandImages = &m_FireStandImages;
+            m_CurrentJumpImages = &m_FireJumpImages;
+            m_CurrentCrouchImages = &m_FireCrouchImages;
+        }
+        else if (m_IsBig) {
             m_CurrentRunImages = &m_BigRunImages;
             m_CurrentStandImages = &m_BigStandImages;
             m_CurrentJumpImages = &m_BigJumpImages;
@@ -176,30 +196,43 @@ void Player::GrowUp() {
     }
 }
 
+// 🔥 吃到火之花！
+void Player::GetFireFlower() {
+    if (!m_IsFire) {
+        m_IsBig = true;  // 防呆：小瑪利歐直接吃到火花也會變大
+        m_IsFire = true;
+        RefreshAnimations();
+        m_CurrentState = AnimState::CHANGING;
+        m_ChangeTimer = 0.4f;
+        m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
+    }
+}
+
 void Player::TakeDamage() {
     // 1. 如果無敵星狀態、正在受傷後的無敵時間中、或已經死了，就免疫傷害！
     if (m_IsStarMode || m_InvincibleTimer > 0.0f || m_CurrentState == AnimState::DEAD) {
         return;
     }
 
-    if (m_IsBig) {
-        // 🍄 大變小：
+    // 🔥 只要是大隻或是火球狀態，受傷一律退回小瑪利歐 (經典初代設定)
+    if (m_IsBig || m_IsFire) {
         m_IsBig = false;
-        m_InvincibleTimer = 2.0f; // 🌟 關鍵：給予 2 秒的無敵時間，避免下一幀立刻又被扣血！
+        m_IsFire = false; // 失去火球能力
+        m_InvincibleTimer = 2.0f; // 🌟 關鍵：給予 2 秒的無敵時間
 
-        // 切換回小瑪利歐的圖片組
-        m_CurrentStandImages = &m_SmallStandImages;
-        m_CurrentRunImages = &m_SmallRunImages;
-        m_CurrentJumpImages = &m_SmallJumpImages;
-        m_CurrentCrouchImages = &m_SmallCrouchImages;
+        RefreshAnimations();
+        m_CurrentState = AnimState::CHANGING;
+        m_ChangeTimer = 0.4f;
+        m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
 
-        m_Mario->SetAnimation(*m_CurrentStandImages);
-        LOG_DEBUG("Mario: Big -> Small (Invincible for 2s)");
-    } else {
+        LOG_DEBUG("Mario: Big/Fire -> Small (Invincible for 2s)");
+    }
+    else {
         // 💀 小瑪利歐：沒救了，觸發死亡
         Die();
     }
 }
+
 // 💀 完整的死亡觸發函式 (這份檔案只能留這一個！)
 void Player::Die() {
     // 如果已經是死亡狀態，就不要重複執行
@@ -207,8 +240,7 @@ void Player::Die() {
 
     m_CurrentState = AnimState::DEAD;
 
-    // 1. 切換成死亡圖片 (如果你的變數名是 m_DeadImages)
-    // 如果編譯器說找不到 m_DeadImages，請確認 Player 構造函式有初始化它
+    // 1. 切換成死亡圖片
     if (!m_DeadImages.empty()) {
         m_Mario->SetAnimation(m_DeadImages);
     }
@@ -225,14 +257,11 @@ void Player::Die() {
 void Player::ResetStatus() {
     m_CurrentState = AnimState::IDLE;
     m_IsBig = false;
+    m_IsFire = false; // 🔥 重置火球狀態
     m_IsStarMode = false;
     m_Velocity = { 0.0f, 0.0f }; // 速度歸零
 
-    // 強制重置為小瑪利歐的圖片指標
-    m_CurrentStandImages = &m_SmallStandImages;
-    m_CurrentRunImages = &m_SmallRunImages;
-    m_CurrentJumpImages = &m_SmallJumpImages;
-    m_CurrentCrouchImages = &m_SmallCrouchImages;
+    RefreshAnimations(); // 重新整理指標
 
     m_Mario->SetAnimation(*m_CurrentStandImages);
     m_Mario->Play();
@@ -251,13 +280,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     // 🚩 旗桿與過關相關實作
     if (m_CurrentState == AnimState::FLAG_SLIDE) {
         m_Mario->m_Transform.scale = { 3.0f, 3.0f };
-        return;
-    }
-
-    glm::vec2 currentPos = m_Mario->GetPosition();
-
-    //  1. 優先處理過關狀態 (把剛剛的邏輯貼在這裡！)
-    if (m_CurrentState == AnimState::FLAG_SLIDE) {
         glm::vec2 pos = m_Mario->GetPosition();
 
         // 往下掉的速度
@@ -273,6 +295,8 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Mario->SetPosition(pos);
         return; // 🌟 關鍵：直接 return，跳過後面的所有鍵盤控制！
     }
+
+    glm::vec2 currentPos = m_Mario->GetPosition();
 
     // 💀 0. 死亡狀態邏輯
     if (m_CurrentState == AnimState::DEAD) {
@@ -345,14 +369,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
     }
 
-    if (m_CurrentState == AnimState::CHANGING) {
-        m_ChangeTimer -= deltaTime;
-        if (m_ChangeTimer <= 0.0f) {
-            m_CurrentState = AnimState::IDLE;
-            m_Mario->SetAnimation(*m_CurrentStandImages);
-        }
-        m_Mario->Play();
-    }
+    // 處理變身閃爍過場
     if (m_CurrentState == AnimState::CHANGING) {
         m_ChangeTimer -= deltaTime;
         if (m_ChangeTimer <= 0.0f) {
@@ -363,7 +380,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     // ==========================================
-    // 👇 貼上這段新的無敵倒數與閃爍邏輯！
+    // 👇 無敵倒數與閃爍邏輯！
     // ==========================================
     if (m_InvincibleTimer > 0.0f && !m_IsStarMode) {
         m_InvincibleTimer -= deltaTime;
@@ -618,7 +635,7 @@ void Player::StartFlagSlide(float poleWorldX) {
     }
 
     m_CurrentState = AnimState::FLAG_SLIDE;
-    m_Velocity = {0.0f, 0.0f};
+    m_Velocity = { 0.0f, 0.0f };
 }
 
 // 🌟 這個是給烏龜/道具判斷碰撞用的

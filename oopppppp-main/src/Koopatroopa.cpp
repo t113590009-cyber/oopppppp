@@ -1,5 +1,6 @@
 #include "Koopatroopa.hpp"
 #include "Util/Logger.hpp"
+#include "Util/Image.hpp" // 🌟 確保有引入 Image，才能切換圖片
 
 Koopatroopa::Koopatroopa(float spawnWorldX, float spawnWorldY) {
     m_WorldX = spawnWorldX;
@@ -22,7 +23,7 @@ void Koopatroopa::Update(float deltaTime, float worldOffset, const std::vector<R
         if (m_DeadTimer > 1.5f) {
             this->SetVisible(false);
         }
-        this->m_Transform.translation = { m_WorldX - worldOffset, m_WorldY }; // 修正點 1
+        this->m_Transform.translation = { m_WorldX - worldOffset, m_WorldY };
         return;
     }
 
@@ -47,7 +48,8 @@ void Koopatroopa::Update(float deltaTime, float worldOffset, const std::vector<R
     if (hitWall) {
         m_SpeedX = -m_SpeedX;
         this->m_Transform.scale.x = (m_SpeedX > 0) ? -3.0f : 3.0f;
-    } else {
+    }
+    else {
         m_WorldX = nextX;
     }
 
@@ -67,15 +69,15 @@ void Koopatroopa::Update(float deltaTime, float worldOffset, const std::vector<R
     if (!onGround) m_WorldY = nextY;
 
     if (m_WorldY < -400.0f) {
-        m_State = State::DEAD;
+        Stomp(); // 掉下深淵也直接處死
         this->SetVisible(false);
     }
 
-    this->m_Transform.translation = { m_WorldX - worldOffset, m_WorldY +10.0f }; // 修正點 2
+    this->m_Transform.translation = { m_WorldX - worldOffset, m_WorldY + 10.0f };
 }
 
 void Koopatroopa::Interact(Player* player, float worldOffset) {
-    if (m_State == State::DEAD) return; // 修正點 3 (移除了 GetVisible)
+    if (m_State == State::DEAD) return;
 
     Rect koopaRect = GetRect(worldOffset);
     Rect playerBody = {
@@ -86,21 +88,17 @@ void Koopatroopa::Interact(Player* player, float worldOffset) {
 
     if (!CollisionHandler::CheckCollision(koopaRect, playerBody)) return;
 
-    // 🌟 判定：無敵星星模式 (使用 IsStarMode 方法避開 private 限制)
+    // 🌟 判定：無敵星星模式
     if (player->IsStarMode()) {
-        m_State = State::DEAD;
-        this->SetDrawable(std::make_shared<Util::Image>(m_DieImage));
+        Stomp(); // 統一呼叫 Stomp 處理死亡
         return;
     }
 
     Rect playerFeet = player->GetFeetRect(worldOffset);
 
-    // 🌟 判定：從上方踩踏 (使用 GetVelocityY 避開 private 限制)
+    // 🌟 判定：從上方踩踏
     if (player->GetVelocityY() < 0.0f && playerFeet.y > koopaRect.y + 10.0f) {
-        m_State = State::DEAD;
-        this->SetDrawable(std::make_shared<Util::Image>(m_DieImage));
-        // 注意：這裡如果 m_Velocity 還是報錯，要在 Player 加入一個 SetVelocityY(float)
-        // 或者暫時註解掉這行測試其他功能
+        Stomp(); // 統一呼叫 Stomp 處理死亡
     }
     else {
         // 🌟 判定：撞到瑪利歐
@@ -113,4 +111,14 @@ Rect Koopatroopa::GetRect(float worldOffset) const {
         return { -9999.0f, -9999.0f, 0.0f, 0.0f };
     }
     return { m_WorldX - 22.0f, m_WorldY - 22.0f, 44.0f, 44.0f };
+}
+
+// ==========================================
+// 🐢 烏龜受擊邏輯 (被踩、星星撞、火球炸都會來到這裡)
+// ==========================================
+void Koopatroopa::Stomp() {
+    // 進入死亡狀態
+    m_State = State::DEAD;
+    // 換上縮進龜殼或死亡的圖片
+    this->SetDrawable(std::make_shared<Util::Image>(m_DieImage));
 }

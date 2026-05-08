@@ -7,6 +7,12 @@
 
 class Koopatroopa : public Util::GameObject {
 public:
+    // 🌟 1. 將 State 移到 public 區塊，這樣 AppUpdate 才能看到它！
+    enum class State {
+        WALKING,
+        DEAD
+    };
+
     Koopatroopa(float spawnWorldX, float spawnWorldY);
 
     void Update(float deltaTime, float worldOffset, const std::vector<Rect>& obstacles);
@@ -18,12 +24,13 @@ public:
 
     bool IsDead() const { return m_State == State::DEAD; }
 
-private:
-    enum class State {
-        WALKING,
-        DEAD
-    };
+    // 🌟 2. 補上讓外部取得當前狀態的函式
+    State GetState() const { return m_State; }
 
+    // 🌟 3. 補上受擊函式 (被踩踏或被火球炸)
+    void Stomp();
+
+private:
     State m_State = State::WALKING;
 
     float m_WorldX;

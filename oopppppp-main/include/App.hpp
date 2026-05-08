@@ -11,6 +11,7 @@
 #include "Block.hpp"            // 🛡️ 磚塊系統
 #include "Goomba.hpp"           // ➕ 栗子球系統
 #include "Koopatroopa.hpp"
+#include "Fireball.hpp"
 
 // 🌟 補上道具系統的標頭檔
 #include "Item.hpp"
@@ -79,7 +80,7 @@ private:
 
     // 🌟 道具管理系統
     std::vector<std::shared_ptr<Item>> m_Items; // 存放畫面上所有的道具 (蘑菇/星星/金幣)
-
+    std::vector<std::shared_ptr<Fireball>> m_Fireballs;
     // 分數特效系統
     std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects;
 

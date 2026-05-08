@@ -15,7 +15,7 @@ Block::Block(Type type, glm::vec2 startPos, int interval) {
     else {
         m_HasItem = false;
     }
-    m_JustSpawnedItem = false; // 剛出生還沒舉手
+    m_JustSpawnedItem = false; // 剛出生還沒舉手通知 AppUpdate
 
     // --- 載入圖片 ---
     if (type == Type::QUESTION) {
@@ -92,9 +92,9 @@ void Block::Update(float deltaTime, float worldOffset) {
     m_Visual->SetPosition({ m_OriginalPos.x - worldOffset, m_CurrentPos.y });
 }
 
-// 🌟 2. 接收 isBigMario 參數，實作敲磚與噴道具邏輯
+// 🌟 2. 接收 isBigMario 參數，實作敲磚邏輯
 void Block::Hit(bool isBigMario) {
-    // 3. 水管防呆：水管頂不動！
+    // 水管防呆：水管頂不動！
     if (m_Type == Type::PIPE_A || m_Type == Type::PIPE_B) return;
 
     // 如果已經空了、碎了、或是正在彈，就不反應
@@ -102,14 +102,25 @@ void Block::Hit(bool isBigMario) {
         return;
     }
 
-    // 🌟 大隻瑪利歐敲碎脆磚 (直接破壞消失)
+    // ==========================================
+    // 🛡️ 道具保護傘：只要裡面還有道具，絕對不准碎！
+    // ==========================================
+    if (m_HasItem) {
+        m_State = State::BOUNCING;
+        m_VelocityY = 9.0f;
+        return; // 直接返回，避開下方的破壞邏輯
+    }
+
+    // ==========================================
+    // 💥 破壞邏輯：沒有道具的脆磚，且是大瑪利歐
+    // ==========================================
     if (m_Type == Type::BRICK_FRAGILE && isBigMario) {
         m_State = State::DESTROYED;
         m_Visual->SetVisible(false);
         return;
     }
 
-    // 觸發彈跳
+    // 觸發一般彈跳 (例如小瑪利歐頂空磚)
     if (m_State == State::NORMAL) {
         m_State = State::BOUNCING;
         m_VelocityY = 9.0f; // 保持完美的彈跳力度

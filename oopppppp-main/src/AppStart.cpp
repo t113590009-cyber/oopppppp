@@ -165,15 +165,15 @@ void App::LoadLevelObjects() {
     m_Blocks.push_back(exitPipe);
     m_Root.AddChild(exitPipe->GetCharacter());
 
-    AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::MUSHROOM);
-    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::COIN);
-    AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::STAR);
+    AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);//測試加的蘑菇
+    AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::BRICK_FRAGILE, 22, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 23, ROW_1_Y);
+    AddBlock(Block::Type::QUESTION, 23, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 24, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 22, ROW_2_Y);
+    AddBlock(Block::Type::QUESTION, 22, ROW_2_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 77, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 78, ROW_1_Y);
+    AddBlock(Block::Type::QUESTION, 78, ROW_1_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::BRICK_FRAGILE, 79, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 80, ROW_2_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 81, ROW_2_Y);
@@ -186,14 +186,14 @@ void App::LoadLevelObjects() {
     AddBlock(Block::Type::BRICK_FRAGILE, 91, ROW_2_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 92, ROW_2_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 93, ROW_2_Y);
-    AddBlock(Block::Type::QUESTION, 94, ROW_2_Y);
-    AddBlock(Block::Type::BRICK_FRAGILE, 94, ROW_1_Y);
+    AddBlock(Block::Type::QUESTION, 94, ROW_2_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::BRICK_FRAGILE, 94, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 100, ROW_1_Y);
-    AddBlock(Block::Type::BRICK_FRAGILE, 101, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 106, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 109, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 112, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 109, ROW_2_Y);
+    AddBlock(Block::Type::BRICK_FRAGILE, 101, ROW_1_Y, Block::ItemType::STAR);
+    AddBlock(Block::Type::QUESTION, 106, ROW_1_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::QUESTION, 109, ROW_1_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::QUESTION, 112, ROW_1_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::QUESTION, 109, ROW_2_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::BRICK_FRAGILE, 118, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 121, ROW_2_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 122, ROW_2_Y);
@@ -201,12 +201,12 @@ void App::LoadLevelObjects() {
     AddBlock(Block::Type::BRICK_FRAGILE, 129, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 130, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 128, ROW_2_Y);
-    AddBlock(Block::Type::QUESTION, 129, ROW_2_Y);
-    AddBlock(Block::Type::QUESTION, 130, ROW_2_Y);
+    AddBlock(Block::Type::QUESTION, 129, ROW_2_Y, Block::ItemType::COIN);
+    AddBlock(Block::Type::QUESTION, 130, ROW_2_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 131, ROW_2_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 168, ROW_1_Y);
     AddBlock(Block::Type::BRICK_FRAGILE, 169, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 170, ROW_1_Y);
+    AddBlock(Block::Type::QUESTION, 170, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 171, ROW_1_Y);
 
     // ⚠️ 如果你之後有把 Goomba 和 Koopatroopa 的生成也寫在 Start 裡，
