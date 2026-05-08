@@ -259,8 +259,8 @@ void App::Update() {
         // 啟動滑行狀態
         m_Player->StartFlagSlide(9147.0f - m_WorldOffset);
 
-        // 🌟 關鍵：將旗子與瑪利歐初始化到最高點 (-20.0f 是你說的旗子高度)
-        m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+        //將旗子與瑪利歐初始化到最高點 (180f 是你說的旗子高度)
+        m_Flag->SetPosition({ 9120.0f - m_WorldOffset, 180.0f });
         m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, -20.0f + 50.0f });
     }
 
@@ -270,7 +270,7 @@ void App::Update() {
             static bool hasLockedSize = false;
 
             if (!m_IsFlagSliding && !m_IsLevelClear) {
-                m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+                m_Flag->SetPosition({ 9120.0f - m_WorldOffset, 180.0f });
                 hasLockedSize = false;
             }
             else if (m_IsFlagSliding) {
@@ -287,7 +287,7 @@ void App::Update() {
                 }
 
                 glm::vec2 flagPos = m_Flag->GetPosition();
-                if (flagPos.y > -235.0f) {
+                if (flagPos.y > -185.0f) {
                     float nextY = flagPos.y - (300.0f * dt);
                     m_Flag->SetPosition({ 9120.0f - m_WorldOffset, nextY });
                     m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, nextY + 40.0f });
@@ -516,11 +516,11 @@ void App::ResetLevel() {
 
     // 🚩 修正重點：旗桿與終點物件重置 (確保它們出現並在對的位置)
     if (m_Flagpole) {
-        m_Flagpole->SetPosition({ 9147.0f, -95.0f }); // 恢復初始高度
+        m_Flagpole->SetPosition({ 9147.0f, 6.0f }); // 恢復初始高度
         m_Flagpole->SetVisible(true);                 // 確保顯示
     }
     if (m_Flag) {
-        m_Flag->SetPosition({ 9110.0f, 150.0f });    // 恢復到桿頂位置
+        m_Flag->SetPosition({ 9120.0f, 180.0f });    // 恢復到桿頂位置
         m_Flag->SetVisible(true);                    // 確保顯示
     }
     if (m_Castle) {
