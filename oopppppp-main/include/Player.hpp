@@ -26,7 +26,6 @@ enum class AnimState {
 class Player {
 public:
     Player();
-
     // 核心更新邏輯
     void Update(float& worldOffset, const CollisionHandler& collision, std::vector<std::shared_ptr<Block>>& blocks, float deltaTime);
 

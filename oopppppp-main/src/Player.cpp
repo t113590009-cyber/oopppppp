@@ -280,24 +280,12 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     // 🚩 旗桿與過關相關實作
     if (m_CurrentState == AnimState::FLAG_SLIDE) {
         m_Mario->m_Transform.scale = { 3.0f, 3.0f };
-        glm::vec2 pos = m_Mario->GetPosition();
-
-        // 往下掉的速度
-        float slideSpeed = 200.0f * deltaTime;
-        pos.y -= slideSpeed;
-
-        // 偵測是否滑到底部 (這裡的 -264.0f 是地磚高度，請依你的地圖微調)
-        if (pos.y <= -264.0f) {
-            pos.y = -264.0f;
-            // TODO: 等滑到底部後，這裡會再切換成 AUTO_WALK 讓他走向城堡
-        }
-
-        m_Mario->SetPosition(pos);
-        return; // 🌟 關鍵：直接 return，跳過後面的所有鍵盤控制！
+        return;
     }
-
     glm::vec2 currentPos = m_Mario->GetPosition();
 
+    if (m_CurrentState == AnimState::FLAG_SLIDE) {
+    }
     // 💀 0. 死亡狀態邏輯
     if (m_CurrentState == AnimState::DEAD) {
         m_DeathTimer += deltaTime;

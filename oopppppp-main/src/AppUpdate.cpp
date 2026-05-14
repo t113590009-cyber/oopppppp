@@ -234,10 +234,10 @@ void App::Update() {
             Rect marioRect = m_Player->GetRect(m_WorldOffset);
             Rect flagpoleRect;
             if (marioRect.height > 50.0f) {
-                flagpoleRect = { 9180.0f, -250.0f, 50.0f, 500.0f };
+                flagpoleRect = { 8900.0f, -300.0f, 300.0f, 600.0f };
             }
             else {
-                flagpoleRect = { 9150.0f, -300.0f, 50.0f, 500.0f };
+                flagpoleRect = { 8900.0f, -350.0f, 300.0f, 600.0f };
             }
 
             if (!m_IsLevelClear && CollisionHandler::CheckCollision(marioRect, flagpoleRect)) {
@@ -260,19 +260,32 @@ void App::Update() {
             if (m_Flag) {
                 static bool isBigDuringSlide = false;
                 static bool hasLockedSize = false;
+                static bool isFireDuringSlide = false;
 
                 if (!m_IsFlagSliding && !m_IsLevelClear) {
-                    m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+                    m_Flag->SetPosition({ 9120.0f - m_WorldOffset, 180.0f });
                     hasLockedSize = false;
                 }
                 else if (m_IsFlagSliding) {
                     if (!hasLockedSize) {
-                        isBigDuringSlide = (m_Player->GetRect(m_WorldOffset).height > 50.0f);
+                        if (m_Player->IsFire()) {
+                            isFireDuringSlide = true;
+                            isBigDuringSlide = false;
+                        }
+                        else if (m_Player->GetRect(m_WorldOffset).height > 50.0f) {
+                            isFireDuringSlide = false;
+                            isBigDuringSlide = true;
+                        }
+                        else {
+                            // 這是小馬力歐 (small)
+                            isFireDuringSlide = false;
+                            isBigDuringSlide = false;
+                        }
                         hasLockedSize = true;
                     }
 
                     glm::vec2 flagPos = m_Flag->GetPosition();
-                    if (flagPos.y > -235.0f) {
+                    if (flagPos.y > -185.0f) {
                         float nextY = flagPos.y - (300.0f * dt);
                         m_Flag->SetPosition({ 9120.0f - m_WorldOffset, nextY });
                         m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, nextY + 40.0f });
@@ -281,7 +294,17 @@ void App::Update() {
                         m_IsFlagSliding = false;
                         std::vector<std::string> runAnims;
 
-                        if (isBigDuringSlide) {
+                        if (isFireDuringSlide) {
+                            // 🔥 火球版
+                            m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -216.0f });
+                            runAnims = {
+                                GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png",
+                                GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run2.png",
+                                GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run3.png"
+                            };
+                        }
+                        else if (isBigDuringSlide) {
+                            // 🍄 一般大馬力歐 (修正點：使用 else if 確保不會跳到下面的 small)
                             m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -216.0f });
                             runAnims = {
                                 GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png",
@@ -302,7 +325,7 @@ void App::Update() {
                     }
                 }
             }
-
+            // 自動走向城堡 (保持原有大小&正常落第高度跑進去)
             if (m_IsLevelClear && !m_IsFlagSliding) {
                 glm::vec2 pPos = m_Player->GetCharacter()->GetPosition();
                 float castleDoorX = 9436.0f - m_WorldOffset;
