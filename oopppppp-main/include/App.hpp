@@ -37,7 +37,6 @@ public:
 private:
     void ValidTask();
 
-private:
     // --- 遊戲狀態管理 ---
     State m_CurrentState = State::START;
     Util::Renderer m_Root;
@@ -92,6 +91,12 @@ private:
     bool m_IsFlagSliding = false;     // 是否正在往下滑
     bool m_IsWalkingToCastle = false; // 是否正在走向城堡
     float m_LevelClearTimer = 0.0f;   // 用來控制落地後的停頓或轉圈時間
+
+    int m_CurrentLevel = 1;         // 🌟 記錄目前是第幾關
+    bool m_IsExitingCastle = false; // 🌟 記錄第二關開場時，是否正在從城堡走出來
+    bool m_IsStage2Initialized = false;
+    void LoadLevel2Objects();       // 🍄 第二關 (1-2) 專用的物件鋪設
+    void AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item = Block::ItemType::NONE);
 };
 
 #endif // APP_HPP

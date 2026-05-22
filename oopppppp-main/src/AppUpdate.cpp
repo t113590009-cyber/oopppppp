@@ -4,18 +4,25 @@
 #include "Util/Logger.hpp"
 #include "Util/Time.hpp"
 
-// 🌟 確保所有道具與特效的標頭檔都有引入
 #include "Mushroom.hpp"
 #include "Star.hpp"
 #include "Coin.hpp"
 #include "ScoreEffect.hpp"
-#include "FireFlower.hpp" // 🔥 必須引入火之花
-#include "Fireball.hpp"   // 🔥 必須引入火球
+#include "FireFlower.hpp"
+#include "Fireball.hpp"
 
 void App::Update() {
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) {
+        m_CurrentLevel = 2;
+        ResetLevel();
+    }
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_1)) {
+        m_CurrentLevel = 1;
+        ResetLevel();
+    }
+
     float dt = Util::Time::GetDeltaTime();
 
-    // --- 1. 選單邏輯 ---
     if (m_Menu->GetVisibility()) {
         m_Menu->Update(dt);
         if (m_Menu->IsStartPressed()) {
@@ -26,8 +33,6 @@ void App::Update() {
             }
             if (m_Map) m_Map->SetVisible(true);
             if (m_Castle) m_Castle->SetVisible(true);
-
-            // 🚩 按 Enter 後顯示旗桿與旗子
             if (m_Flagpole) m_Flagpole->SetVisible(true);
             if (m_Flag) m_Flag->SetVisible(true);
 
@@ -36,21 +41,17 @@ void App::Update() {
                     block->GetCharacter()->SetVisible(true);
                 }
             }
-
-            // 🌟 顯示計分板 UI
             if (m_TopUI) m_TopUI->SetVisible(true);
         }
     }
-    // --- 2. 遊戲邏輯 ---
     else {
-        // 💀 死亡與重生判定
         if (m_Player->IsDead()) {
             m_DeathTimer += dt;
             if (m_DeathTimer > 2.5f) {
                 m_Lives--;
                 m_DeathTimer = 0.0f;
                 if (m_Lives > 0) {
-                    ResetLevel(); // 小馬力歐死亡重置
+                    ResetLevel();
                 }
                 else {
                     m_CurrentState = State::END;
@@ -58,12 +59,10 @@ void App::Update() {
             }
         }
         else {
-            // 🕳️ 深淵判定
             if (m_Player->GetPosition().y < -400.0f) {
                 m_Player->Die();
             }
 
-            // ⏰ 時間倒數與 UI 更新
             if (m_CurrentState != State::END) {
                 m_GameTime -= dt * 2.5f;
                 if (m_GameTime < 0.0f) m_GameTime = 0.0f;
@@ -72,44 +71,31 @@ void App::Update() {
                 m_TopUI->Update(m_Score, m_Coins, static_cast<int>(m_GameTime));
             }
 
-            // ==========================================
-            // 🏃‍♂️ 玩家物理更新 (包含傳送門與磚塊碰撞)
-            // ==========================================
             m_Player->Update(m_WorldOffset, m_Collision, m_Blocks, dt);
 
-            // 🌟 落地時重置踩踏連擊
             if (m_Player->IsOnGround()) {
                 m_ComboCount = 0;
             }
             const int STOMP_SCORES[] = { 100, 200, 400, 500, 800, 1000, 2000, 4000, 8000, -1 };
 
-            // ==========================================
-            // 🔥 發射火球邏輯 (按下 Space 鍵發射)
-            // ==========================================
             if (m_Player->IsFire() && Util::Input::IsKeyDown(Util::Keycode::SPACE)) {
                 if (m_Fireballs.size() < 2) {
                     bool faceRight = (m_Player->GetCharacter()->m_Transform.scale.x > 0);
                     glm::vec2 pPos = m_Player->GetPosition();
 
-                    // 🌟 關鍵修改：發射位置 = 螢幕位置 + 鏡頭位移
                     auto fireball = std::make_shared<Fireball>(m_WorldOffset + pPos.x, pPos.y, faceRight);
                     m_Root.AddChild(fireball);
                     m_Fireballs.push_back(fireball);
                 }
             }
 
-            // ==========================================
-            // 🧱 磚塊更新、道具生成與破壞判定 (合併優化版)
-            // ==========================================
             for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
                 (*it)->Update(dt, m_WorldOffset);
 
-                // 🌟 1. 先檢查這個磚塊是不是剛被撞過、要噴道具？
                 if ((*it)->HasJustSpawnedItem()) {
                     Block::ItemType type = (*it)->GetItemType();
 
                     if (type == Block::ItemType::MUSHROOM) {
-                        // 🌟 大隻或火球撞蘑菇方塊，會噴出火之花
                         if (m_Player->IsBig() || m_Player->IsFire()) {
                             auto fireFlower = std::make_shared<FireFlower>((*it)->GetPosition().x, (*it)->GetPosition().y);
                             m_Root.AddChild(fireFlower);
@@ -127,7 +113,7 @@ void App::Update() {
                         m_Items.push_back(std::move(star));
                     }
                     else if (type == Block::ItemType::COIN) {
-                        auto coin = std::make_shared<Coin>((*it)->GetPosition().x, (*it)->GetPosition().y, 0);
+                        auto coin = std::make_shared<Coin>( (*it)->GetPosition().x, (*it)->GetPosition().y, 0);
                         m_Root.AddChild(coin);
                         m_Items.push_back(std::move(coin));
 
@@ -143,7 +129,6 @@ void App::Update() {
                     }
                 }
 
-                // 🌟 2. 噴完道具後，才判斷這個磚塊是否該消失
                 if ((*it)->IsDestroyed()) {
                     m_Root.RemoveChild((*it)->GetCharacter());
                     it = m_Blocks.erase(it);
@@ -153,9 +138,6 @@ void App::Update() {
                 }
             }
 
-            // ==========================================
-            // 🧱 打包地形碰撞箱 (給道具與火球用)
-            // ==========================================
             std::vector<Rect> allObstacles = m_Collision.GetObstacles();
             for (const auto& block : m_Blocks) {
                 Rect hit = block->GetHitbox();
@@ -164,9 +146,6 @@ void App::Update() {
                 }
             }
 
-            // ==========================================
-            // 🔥 火球物理更新與清理
-            // ==========================================
             for (auto it = m_Fireballs.begin(); it != m_Fireballs.end(); ) {
                 (*it)->Update(dt, m_WorldOffset, allObstacles);
                 if ((*it)->IsDestroyed()) {
@@ -178,9 +157,6 @@ void App::Update() {
                 }
             }
 
-            // ==========================================
-            // 🍄 道具物理更新與吃相判定
-            // ==========================================
             for (auto it = m_Items.begin(); it != m_Items.end(); ) {
                 (*it)->Update(dt, m_WorldOffset, allObstacles);
 
@@ -220,44 +196,38 @@ void App::Update() {
                 }
             }
 
-            if (m_Castle) {
-                m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
+            if (m_CurrentLevel == 1) {
+                if (m_Castle)   m_Castle->SetPosition({ 9436.0f - m_WorldOffset, -145.0f });
+                if (m_Flagpole) m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, 6.0f });
+
+                Rect marioRect = m_Player->GetRect(m_WorldOffset);
+                Rect flagpoleRect;
+                if (marioRect.height > 50.0f) {
+                    flagpoleRect = { 8900.0f, -300.0f, 300.0f, 600.0f };
+                }
+                else {
+                    flagpoleRect = { 8900.0f, -350.0f, 300.0f, 600.0f };
+                }
+
+                if (!m_IsLevelClear && CollisionHandler::CheckCollision(marioRect, flagpoleRect)) {
+                    m_IsLevelClear = true;
+                    m_IsFlagSliding = true;
+
+                    float hitY = m_Player->GetPosition().y;
+                    int flagScore = 100;
+                    if (hitY > -100) flagScore = 400;
+                    if (hitY > 0)    flagScore = 800;
+                    if (hitY > 100)  flagScore = 2000;
+                    if (hitY > 150)  flagScore = 5000;
+                    m_Score += flagScore;
+
+                    m_Player->StartFlagSlide(9147.0f - m_WorldOffset);
+                    m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
+                    m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, -20.0f + 50.0f });
+                }
             }
 
-            // ==========================================================
-            // 🚩 過關判定與旗桿動畫
-            // ==========================================================
-            if (m_Flagpole) {
-                m_Flagpole->SetPosition({ 9147.0f - m_WorldOffset, 6.0f });
-            }
-
-            Rect marioRect = m_Player->GetRect(m_WorldOffset);
-            Rect flagpoleRect;
-            if (marioRect.height > 50.0f) {
-                flagpoleRect = { 8900.0f, -300.0f, 300.0f, 600.0f };
-            }
-            else {
-                flagpoleRect = { 8900.0f, -350.0f, 300.0f, 600.0f };
-            }
-
-            if (!m_IsLevelClear && CollisionHandler::CheckCollision(marioRect, flagpoleRect)) {
-                m_IsLevelClear = true;
-                m_IsFlagSliding = true;
-
-                float hitY = m_Player->GetPosition().y;
-                int flagScore = 100;
-                if (hitY > -100) flagScore = 400;
-                if (hitY > 0)    flagScore = 800;
-                if (hitY > 100)  flagScore = 2000;
-                if (hitY > 150)  flagScore = 5000;
-                m_Score += flagScore;
-
-                m_Player->StartFlagSlide(9147.0f - m_WorldOffset);
-                m_Flag->SetPosition({ 9120.0f - m_WorldOffset, -20.0f });
-                m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, -20.0f + 50.0f });
-            }
-
-            if (m_Flag) {
+            if (m_Flag && m_CurrentLevel == 1) {
                 static bool isBigDuringSlide = false;
                 static bool hasLockedSize = false;
                 static bool isFireDuringSlide = false;
@@ -277,7 +247,6 @@ void App::Update() {
                             isBigDuringSlide = true;
                         }
                         else {
-                            // 這是小馬力歐 (small)
                             isFireDuringSlide = false;
                             isBigDuringSlide = false;
                         }
@@ -295,7 +264,6 @@ void App::Update() {
                         std::vector<std::string> runAnims;
 
                         if (isFireDuringSlide) {
-                            // 🔥 火球版
                             m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -216.0f });
                             runAnims = {
                                 GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png",
@@ -304,7 +272,6 @@ void App::Update() {
                             };
                         }
                         else if (isBigDuringSlide) {
-                            // 🍄 一般大馬力歐 (修正點：使用 else if 確保不會跳到下面的 small)
                             m_Player->GetCharacter()->SetPosition({ 9170.0f - m_WorldOffset, -216.0f });
                             runAnims = {
                                 GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png",
@@ -325,8 +292,8 @@ void App::Update() {
                     }
                 }
             }
-            // 自動走向城堡 (保持原有大小&正常落第高度跑進去)
-            if (m_IsLevelClear && !m_IsFlagSliding) {
+
+            if (m_CurrentLevel == 1 && m_IsLevelClear && !m_IsFlagSliding) {
                 glm::vec2 pPos = m_Player->GetCharacter()->GetPosition();
                 float castleDoorX = 9436.0f - m_WorldOffset;
                 if (pPos.x < castleDoorX) {
@@ -336,10 +303,14 @@ void App::Update() {
                 }
                 else {
                     m_Player->GetCharacter()->SetVisible(false);
+                    m_CurrentLevel = 2;
+                    ResetLevel();
+
+                    // 🌟 核心修正：移除了 AUTO_WALK 狀態鎖定！
+                    // 這樣切換到第二關時，玩家就能立刻重新操控瑪利歐，不再無腦往前衝！
                 }
             }
 
-            // 💯 分數特效更新與清理
             for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
                 (*it)->Update(dt, m_WorldOffset);
                 if ((*it)->IsDone()) {
@@ -351,34 +322,34 @@ void App::Update() {
                 }
             }
 
-            // --- 🍄 栗子球與 🐢 烏龜分段生成邏輯 ---
-            if (m_SpawnPhase == 0 && m_WorldOffset > 800.0f) {
-                auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f);
-                m_Root.AddChild(g->GetDrawable());
-                m_Goombas.push_back(std::move(g));
-                m_SpawnPhase = 1;
-            }
-            else if (m_SpawnPhase == 1 && m_WorldOffset > 2500.0f) {
-                for (int i = 0; i < 2; ++i) {
-                    auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f + (i * 100.0f));
+            if (m_CurrentLevel == 1) {
+                if (m_SpawnPhase == 0 && m_WorldOffset > 800.0f) {
+                    auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f);
                     m_Root.AddChild(g->GetDrawable());
                     m_Goombas.push_back(std::move(g));
+                    m_SpawnPhase = 1;
                 }
-                auto turtle = std::make_shared<Koopatroopa>(m_WorldOffset + 1200.0f, -100.0f);
-                m_Root.AddChild(turtle);
-                m_Koopatroopas.push_back(turtle);
-                m_SpawnPhase = 2;
-            }
-            else if (m_SpawnPhase == 2 && m_WorldOffset > 4500.0f) {
-                for (int i = 0; i < 3; ++i) {
-                    auto g = std::make_unique<Goomba>(m_WorldOffset + 750.0f + (i * 120.0f));
-                    m_Root.AddChild(g->GetDrawable());
-                    m_Goombas.push_back(std::move(g));
+                else if (m_SpawnPhase == 1 && m_WorldOffset > 2500.0f) {
+                    for (int i = 0; i < 2; ++i) {
+                        auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f + (i * 100.0f));
+                        m_Root.AddChild(g->GetDrawable());
+                        m_Goombas.push_back(std::move(g));
+                    }
+                    auto turtle = std::make_shared<Koopatroopa>(m_WorldOffset + 1200.0f, -100.0f);
+                    m_Root.AddChild(turtle);
+                    m_Koopatroopas.push_back(turtle);
+                    m_SpawnPhase = 2;
                 }
-                m_SpawnPhase = 3;
+                else if (m_SpawnPhase == 2 && m_WorldOffset > 4500.0f) {
+                    for (int i = 0; i < 3; ++i) {
+                        auto g = std::make_unique<Goomba>(m_WorldOffset + 750.0f + (i * 120.0f));
+                        m_Root.AddChild(g->GetDrawable());
+                        m_Goombas.push_back(std::move(g));
+                    }
+                    m_SpawnPhase = 3;
+                }
             }
 
-            // --- 🍄 栗子球更新與互動判定 ---
             for (auto it = m_Goombas.begin(); it != m_Goombas.end(); ) {
                 (*it)->Update(dt, m_WorldOffset, m_Collision);
 
@@ -386,13 +357,11 @@ void App::Update() {
                 Rect marioScreenRect = { pPos.x - 18.0f, pPos.y - 25.0f, 36.0f, 20.0f };
                 Rect goombaScreenRect = (*it)->GetRect(m_WorldOffset);
 
-                // 🔥 偵測火球擊殺栗子球
                 bool hitByFireball = false;
                 for (auto& fb : m_Fireballs) {
                     Rect fbScreenRect = fb->GetRect();
                     fbScreenRect.x -= m_WorldOffset;
 
-                    // 🌟 關鍵修正：加上 !fb->IsExploding()，爆炸中的火球不能再判定傷害！
                     if (!fb->IsDestroyed() && !fb->IsExploding() && CollisionHandler::CheckCollision(fbScreenRect, goombaScreenRect)) {
                         fb->Explode();
                         hitByFireball = true;
@@ -407,9 +376,7 @@ void App::Update() {
                     auto score = std::make_shared<ScoreEffect>(200, gX, goombaScreenRect.y + 24.0f);
                     m_Root.AddChild(score->GetDrawable());
                     m_ScoreEffects.push_back(score);
-                    // 🌟 刪除 continue; 讓迴圈能順利往下走！
                 }
-                // 🌟 加一個 else if，如果是被火球打死，就不會再被瑪利歐判定一次受傷
                 else if ((*it)->GetState() == Goomba::State::WALKING && CollisionHandler::CheckCollision(marioScreenRect, goombaScreenRect)) {
                     if (m_Player->IsStarMode()) {
                         (*it)->Stomp();
@@ -450,15 +417,12 @@ void App::Update() {
                 }
             }
 
-            // --- 🐢 烏龜更新與互動判定 ---
             for (auto& koopa : m_Koopatroopas) {
                 koopa->Update(dt, m_WorldOffset, allObstacles);
-                Rect koopaRect = koopa->GetRect(m_WorldOffset); // 烏龜回傳的是世界座標
+                Rect koopaRect = koopa->GetRect(m_WorldOffset);
 
-                // 🔥 偵測火球擊殺烏龜
                 bool hitByFireball = false;
                 for (auto& fb : m_Fireballs) {
-                    // 🌟 關鍵修正：加上 !fb->IsExploding()
                     if (!fb->IsDestroyed() && !fb->IsExploding() && CollisionHandler::CheckCollision(fb->GetRect(), koopaRect)) {
                         fb->Explode();
                         hitByFireball = true;
@@ -468,7 +432,7 @@ void App::Update() {
                 if (hitByFireball && koopa->GetState() != Koopatroopa::State::DEAD) {
                     koopa->Stomp();
                     m_Score += 200;
-                    float kX = koopaRect.x + 18.0f; // 烏龜本來就是世界座標，不用加 Offset
+                    float kX = koopaRect.x + 18.0f;
                     auto score = std::make_shared<ScoreEffect>(200, kX, koopaRect.y + 24.0f);
                     m_Root.AddChild(score->GetDrawable());
                     m_ScoreEffects.push_back(score);
@@ -485,7 +449,6 @@ void App::Update() {
         m_CurrentState = State::END;
     }
 
-    // 🌟 最終繪製：這是整個畫面能被看到的關鍵！
     m_Root.Update();
 }
 
@@ -493,56 +456,77 @@ void App::ResetLevel() {
     m_WorldOffset = 0.0f;
     m_GameTime = 400.0f;
 
-    if (m_Player) {
-        m_Player->ResetStatus();
-        if (m_Player->GetCharacter()) {
-            m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
-            m_Player->GetCharacter()->SetVisible(true);
-        }
+    // 🌟 關卡背景控制：根據當前關卡切換地圖顯示，並重置捲動位置
+    if (m_Map) {
+        m_Map->ShowLevel(m_CurrentLevel);
+        m_Map->Update(0.0f);
     }
 
-    if (m_Map) m_Map->Update(0.0f);
-
-    // 🧹 第一階段：大掃除
+    // 徹底清理殘留物件
     for (auto& goomba : m_Goombas) { if (goomba) m_Root.RemoveChild(goomba->GetDrawable()); }
     m_Goombas.clear();
-
     for (auto& koopa : m_Koopatroopas) { if (koopa) m_Root.RemoveChild(koopa); }
     m_Koopatroopas.clear();
-
     for (auto& effect : m_ScoreEffects) { if (effect) m_Root.RemoveChild(effect->GetDrawable()); }
     m_ScoreEffects.clear();
-
     for (auto& item : m_Items) { if (item) m_Root.RemoveChild(item); }
     m_Items.clear();
-
-    // 🔥 清除殘留火球
     for (auto& fb : m_Fireballs) { if (fb) m_Root.RemoveChild(fb); }
     m_Fireballs.clear();
-
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) m_Root.RemoveChild(block->GetCharacter());
     }
     m_Blocks.clear();
 
-    if (m_Flagpole) {
-        m_Flagpole->SetPosition({ 9147.0f, -95.0f });
-        m_Flagpole->SetVisible(true);
-    }
-    if (m_Flag) {
-        m_Flag->SetPosition({ 9110.0f, 150.0f });
-        m_Flag->SetVisible(true);
-    }
-    if (m_Castle) m_Castle->SetVisible(true);
+    m_Collision.ClearObstacles();
 
     m_SpawnPhase = 0;
-    m_IsLevelClear = false;  // 重置過關狀態
-    m_IsFlagSliding = false; // 重置拉旗子狀態
+    m_IsLevelClear = false;
+    m_IsFlagSliding = false;
 
-    // ✨ 第二階段：重生！
-    LoadLevelObjects();
+    // ==================== 第一關 (1-1) 重置邏輯 ====================
+    if (m_CurrentLevel == 1) {
+        if (m_Player) {
+            m_Player->ResetStatus();
+            if (m_Player->GetCharacter()) {
+                m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
+                m_Player->GetCharacter()->SetVisible(true);
+            }
+        }
+        if (m_Flagpole) {
+            m_Flagpole->SetPosition({ 9147.0f, -95.0f });
+            m_Flagpole->SetVisible(true);
+        }
+        if (m_Flag) {
+            m_Flag->SetPosition({ 9110.0f, 150.0f });
+            m_Flag->SetVisible(true);
+        }
+        if (m_Castle) m_Castle->SetVisible(true);
 
-    // 🌟 第三階段：防呆機制
+        LoadLevelObjects(); // 載入第一關的怪物與方塊
+    }
+    // ==================== 第二關 (1-2) 重置邏輯 ====================
+    else if (m_CurrentLevel == 2) {
+        if (m_Player) {
+            m_Player->ResetStatus();
+            m_Player->SetWorldPosition(-450.0f, -264.0f);
+            if (m_Player->GetCharacter()) {
+                m_Player->GetCharacter()->SetVisible(true);
+            }
+        }
+
+        // 隱藏第一關的地表過關物件
+        if (m_Castle) m_Castle->SetVisible(false);
+        if (m_Flagpole) m_Flagpole->SetVisible(false);
+        if (m_Flag) m_Flag->SetVisible(false);
+
+        // ✨ 修正：移除了會破壞地圖陣列的 InitStage1_2 與 m_IsStage2Initialized 舊程式碼
+        // 直接讀取我們在 Map::Init 中一次性預載好的 1-2 獨立背景
+
+        LoadLevel2Objects(); // 載入第二關的怪物與方塊
+    }
+
+    // 確保重新生成的方塊與道具皆為顯示狀態
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) block->GetCharacter()->SetVisible(true);
     }

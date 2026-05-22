@@ -18,6 +18,10 @@ public:
         m_Obstacles.push_back({ x, y, w, h });
     }
 
+    void ClearObstacles() {
+        m_Obstacles.clear();
+    }
+
     // ➡️ 取得所有障礙物（給 Update 迴圈用）
     const std::vector<Rect>& GetObstacles() const { return m_Obstacles; }
 

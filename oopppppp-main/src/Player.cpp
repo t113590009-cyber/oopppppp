@@ -639,3 +639,33 @@ Rect Player::GetRect(float worldOffset) const {
         height
     };
 }
+
+// 🌟 1. 設定狀態 (一定要有 Player::)
+void Player::SetState(AnimState state) {
+    m_CurrentState = state;
+
+    // 自動換動畫：確保自動走路時看起來像在跑
+    if (state == AnimState::AUTO_WALK || state == AnimState::RUN) {
+        if (m_CurrentRunImages) {
+            m_Mario->SetAnimation(*m_CurrentRunImages, 100);
+            m_Mario->Play();
+        }
+    }
+    else if (state == AnimState::IDLE) {
+        if (m_CurrentStandImages) {
+            m_Mario->SetAnimation(*m_CurrentStandImages);
+        }
+    }
+}
+
+// 🌟 2. 設定世界座標 (一定要有 Player::)
+void Player::SetWorldPosition(float worldX, float y) {
+    if (m_Mario) {
+        m_Mario->SetPosition({ worldX, y });
+    }
+}
+
+// 🌟 3. 取得世界 X 座標 (一定要有 Player:: 且後面要有 const)
+float Player::GetWorldX(float worldOffset) const {
+    return worldOffset + m_Mario->GetPosition().x;
+}

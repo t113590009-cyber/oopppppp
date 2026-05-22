@@ -57,6 +57,11 @@ public:
     bool IsBig() const { return m_IsBig; }
     bool IsFire() const { return m_IsFire; } // 🔥 火球狀態
 
+    void SetState(AnimState state);
+    AnimState GetState() const { return m_CurrentState; }
+    void SetWorldPosition(float worldX, float y);
+    float GetWorldX(float worldOffset) const;
+
 private:
     void RefreshAnimations();
 

@@ -5,7 +5,7 @@
 void App::Start() {
     LOG_TRACE("Start");
 
-    // 1. 載入所有物件
+    // 1. 載入所有基礎物件
     m_Menu = std::make_unique<Menu>();
     m_Player = std::make_unique<Player>();
     m_Map = std::make_unique<Map>();
@@ -33,7 +33,6 @@ void App::Start() {
     m_Castle->SetVisible(false);
     m_Root.AddChild(m_Castle);
 
-    // 2. 把標題和游標推上舞台
     auto title = m_Menu->GetTitle();
     auto selector = m_Menu->GetSelector();
     title->m_Transform.scale = { 3.0f, 3.0f };
@@ -45,7 +44,6 @@ void App::Start() {
     m_Root.AddChild(title);
     m_Root.AddChild(selector);
 
-    // 3. 畫黑邊 UI 與失敗畫面
     auto leftBar = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/black_box.png");
     leftBar->m_Transform.scale = { 3.0f, 3.0f };
     leftBar->SetZIndex(20);
@@ -65,7 +63,36 @@ void App::Start() {
     m_FailScreen->SetVisible(false);
     m_Root.AddChild(m_FailScreen);
 
-    // 4. 碰撞物理牆壁 (牆壁不會壞，所以留在這裡只生成一次)
+    LoadLevelObjects();
+
+    m_Root.AddChild(m_Player->GetCharacter());
+
+    m_TopUI = std::make_shared<TopUI>();
+    for (auto& uiElem : m_TopUI->GetDrawables()) {
+        m_Root.AddChild(uiElem);
+    }
+    m_TopUI->SetVisible(false);
+
+    m_CurrentState = State::UPDATE;
+}
+
+void App::LoadLevelObjects() {
+    auto AddFixedCoin = [&](float absoluteX, float absoluteY) {
+        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
+        m_Root.AddChild(coin);
+        m_Items.push_back(coin);
+    };
+
+    float ugStartX = 15192.0f + 24.0f;
+    float ugBaseY = -96.0f;
+
+    for (int i = 0; i < 7; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY);
+    for (int i = 0; i < 7; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 96.0f);
+    for (int i = 1; i <= 5; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 192.0f);
+
+    const float ROW_1_Y = -72.0f;
+    const float ROW_2_Y = 120.0f;
+
     m_Collision.AddObstacle(-380.0f, -360.0f, 3312.0f, 96.0f);
     m_Collision.AddObstacle(3028.0f, -360.0f, 720.0f, 96.0f);
     m_Collision.AddObstacle(3892.0f, -360.0f, 3072.0f, 96.0f);
@@ -106,67 +133,24 @@ void App::Start() {
     m_Collision.AddObstacle(15720.0f, -264.0f, 48.0f, 432.0f);
     m_Collision.AddObstacle(15192.0f, -264.0f, 336.0f, 144.0f);
 
-    // ==========================================
-    // 🌟 5. 呼叫關卡產生器 (把你剛剛剪下的金幣和磚塊生出來！)
-    // ==========================================
-    LoadLevelObjects();
-
-    // 6. 把瑪利歐加進去，確保他在最上層
-    m_Root.AddChild(m_Player->GetCharacter());
-
-    // 7. 載入上方 UI 並加進 m_Root
-    m_TopUI = std::make_shared<TopUI>();
-    for (auto& uiElem : m_TopUI->GetDrawables()) {
-        m_Root.AddChild(uiElem);
-    }
-    m_TopUI->SetVisible(false);
-
-    m_CurrentState = State::UPDATE;
-}
-// ==========================================
-// 🌟 關卡物件產生器：每次 ResetLevel 都會呼叫這裡重建關卡
-// ==========================================
-void App::LoadLevelObjects() {
-
-    // 🪙 1. 新增：固定金幣放置工具
-    auto AddFixedCoin = [&](float absoluteX, float absoluteY) {
-        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
-        m_Root.AddChild(coin);
-        m_Items.push_back(coin);
-    };
-
-    // 💰 經典 1-1 地下室隱藏金幣區
-    float ugStartX = 15192.0f + 24.0f;
-    float ugBaseY = -96.0f;
-
-    for (int i = 0; i < 7; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY);
-    for (int i = 0; i < 7; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 96.0f);
-    for (int i = 1; i <= 5; ++i) AddFixedCoin(ugStartX + (i * 48.0f), ugBaseY + 192.0f);
-
-    // 🍄 2. 經典 1-1 關卡生成區 (視覺磚塊與水管)
-    const float TILE = 48.0f;
-    const float START_X = -360.0f;
-    const float ROW_1_Y = -72.0f;
-    const float ROW_2_Y = 120.0f;
-
-    auto AddBlock = [&](Block::Type type, float gridX, float absoluteY, Block::ItemType itemType = Block::ItemType::NONE) {
-        float absoluteX = START_X + (gridX * TILE);
-        auto block = std::make_shared<Block>(type, glm::vec2(absoluteX, absoluteY));
-        block->SetItemType(itemType);
-        m_Blocks.push_back(block);
-        m_Root.AddChild(block->GetCharacter());
-    };
-
+    // 🌟 1. 將水管生成並存入 m_Blocks 容器中（這樣 ResetLevel 時才能徹底被大掃除）
     auto entrancePipe = std::make_shared<Block>(Block::Type::PIPE_A, glm::vec2(2400.0f, -168.0f));
     m_Blocks.push_back(entrancePipe);
-    m_Root.AddChild(entrancePipe->GetCharacter());
 
     auto exitPipe = std::make_shared<Block>(Block::Type::PIPE_B, glm::vec2(7492.0f, -216.0f));
     m_Blocks.push_back(exitPipe);
-    m_Root.AddChild(exitPipe->GetCharacter());
+
+    // 🌟 2. 核心關鍵：在這裡補上這個迴圈，確保「遊戲第一次剛啟動」時，水管和所有方塊會立刻安全地被加進畫面中！
+    for (auto& block : m_Blocks) {
+        if (block && block->GetCharacter()) {
+            block->GetCharacter()->SetVisible(false); // 剛開局在主選單時先隱形，點 Start 後才會秀出來
+            m_Root.AddChild(block->GetCharacter());   // 正式加入渲染樹中
+        }
+    }
+
 
     AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::COIN);
-    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);//測試加的蘑菇
+    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::BRICK_FRAGILE, 22, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 23, ROW_1_Y, Block::ItemType::COIN);
@@ -208,7 +192,28 @@ void App::LoadLevelObjects() {
     AddBlock(Block::Type::BRICK_FRAGILE, 169, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 170, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 171, ROW_1_Y);
+}
 
-    // ⚠️ 如果你之後有把 Goomba 和 Koopatroopa 的生成也寫在 Start 裡，
-    // 以後也請把它們的 push_back 寫在這個函式最下面喔！
+void App::LoadLevel2Objects() {
+    float ROW_1_Y = -72.0f;
+
+    // 🌟 修正：只有進入第二關時，這裡才會配合 ResetLevel() 確保可見
+    if (m_Map) {
+        m_Map->SetVisible(true);
+    }
+
+    AddBlock(Block::Type::BRICK_FRAGILE, 10, ROW_1_Y);
+    AddBlock(Block::Type::QUESTION, 12, ROW_1_Y, Block::ItemType::MUSHROOM);
+
+    m_Collision.AddObstacle(-1000.0f, -360.0f, 10000.0f, 96.0f);
+}
+
+void App::AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item) {
+    float worldX = -360.0f + (static_cast<float>(gridX) * 48.0f);
+
+    auto block = std::make_shared<Block>(type, glm::vec2{ worldX, gridY });
+    block->SetItemType(item);
+
+    m_Blocks.push_back(block);
+    m_Root.AddChild(block->GetCharacter());
 }
