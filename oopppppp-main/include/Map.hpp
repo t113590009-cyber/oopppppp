@@ -57,7 +57,7 @@ public:
         // --- ⬇️ 3. 載入 1-2 的背景圖片邏輯 ⬇️ ---
         float currentX2 = -450.0f; // 1-2 從城堡門口 (-450) 開始排列（可依需求微調此數值）
         for (int i = 1; i <= 11; ++i) {
-            std::string path2 = GA_RESOURCE_DIR"/Image/Background/stage1-2/1_2_" + std::to_string(i) + ".png";
+            std::string path2 = GA_RESOURCE_DIR"/Image/Background/stage1-2/1-2-" + std::to_string(i) + ".png";
             auto stage2 = std::make_shared<Character>(path2);
 
             stage2->m_Transform.scale = { globalScale, globalScale };
