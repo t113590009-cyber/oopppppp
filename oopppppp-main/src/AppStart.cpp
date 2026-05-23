@@ -208,6 +208,22 @@ void App::LoadLevel2Objects() {
     m_Collision.AddObstacle(-1000.0f, -360.0f, 10000.0f, 96.0f);
 }
 
+void App::LoadLevel3Objects() {
+    // ---------------------------------------------------------
+    // 1. 鋪設 1-3 的基本地平線地板 (實體碰撞箱)
+    // ---------------------------------------------------------
+    // ✨ 完美修正：直接使用你最穩定的 AddObstacle 機制！
+    // 從 X = -450.0f 開始，鋪設一條涵蓋 10 張圖片總寬度(7680.0f)的超長實體地板
+    // 這樣瑪利歐一進來就能完美踩在 1-3 的地表上奔跑，且絕對不卡控不破圖！
+    m_Collision.AddObstacle(-450.0f, -360.0f, 7680.0f, 96.0f);
+
+    // ---------------------------------------------------------
+    // 2. 鋪設 1-3 特有的空中方塊、問號方塊、金幣
+    // ---------------------------------------------------------
+    // 範例（可以自己依需求追加網格 X 座標與 Y 座標）：
+    // AddBlock(Block::Type::QUESTION, 15, -72.0f, Block::ItemType::MUSHROOM);
+}
+
 void App::AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item) {
     float worldX = -360.0f + (static_cast<float>(gridX) * 48.0f);
 

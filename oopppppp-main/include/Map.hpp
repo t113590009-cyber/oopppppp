@@ -12,7 +12,7 @@ class Map {
 public:
     Map() = default;
 
-    // ➡️ 初始化：在遊戲啟動時「一次性」載入所有關卡資源，拒絕重複載入造成破圖
+    // ➡️ 初始化：在遊戲啟動時「一次性」載入所有關卡資源
     void Init(Util::Renderer& renderer) {
         float globalScale = 3.0f;
 
@@ -23,7 +23,7 @@ public:
             auto stage = std::make_shared<Character>(path);
 
             stage->m_Transform.scale = { globalScale, globalScale };
-            stage->SetZIndex(0); // 背景在最底層
+            stage->SetZIndex(0);
             stage->SetVisible(false);
 
             float originalWidth = (i == 14) ? 48.0f : 256.0f;
@@ -55,7 +55,7 @@ public:
         renderer.AddChild(m_UndergroundPipe);
 
         // --- ⬇️ 3. 載入 1-2 的背景圖片邏輯 ⬇️ ---
-        float currentX2 = -450.0f; // 1-2 從城堡門口 (-450) 開始排列（可依需求微調此數值）
+        float currentX2 = -450.0f;
         for (int i = 1; i <= 11; ++i) {
             std::string path2 = GA_RESOURCE_DIR"/Image/Background/stage1-2/1-2-" + std::to_string(i) + ".png";
             auto stage2 = std::make_shared<Character>(path2);
@@ -64,7 +64,6 @@ public:
             stage2->SetZIndex(0);
             stage2->SetVisible(false);
 
-            // ✨ 核心修正：判斷第 11 張（最後一張）特殊寬度，防止圖片邊緣出現留白黑條
             float originalWidth2 = (i == 11) ? 48.0f : 256.0f;
             float scaledWidth2 = originalWidth2 * globalScale;
 
@@ -75,21 +74,47 @@ public:
             renderer.AddChild(stage2);
             m_Level2Backgrounds.push_back(stage2);
         }
+
+        // --- ⬇️ ✨ 新增：4. 載入 1-3 的背景圖片邏輯 ✨ ⬇️ ---
+        float currentX3 = -450.0f; // 1-3 一樣從 -450.0f 開始鋪設
+        for (int i = 1; i <= 10; ++i) { // 總共 10 張圖
+            std::string path3 = GA_RESOURCE_DIR"/Image/Background/stage1-3/1-3-" + std::to_string(i) + ".png";
+            auto stage3 = std::make_shared<Character>(path3);
+
+            stage3->m_Transform.scale = { globalScale, globalScale };
+            stage3->SetZIndex(0);
+            stage3->SetVisible(false);
+
+            float originalWidth3 = 256.0f; // 預設每張寬度 256
+            float scaledWidth3 = originalWidth3 * globalScale;
+
+            stage3->SetPosition({ currentX3 + (scaledWidth3 / 2.0f), 0.0f });
+            m_Level3OriginalXCoords.push_back(currentX3 + (scaledWidth3 / 2.0f));
+
+            currentX3 += scaledWidth3;
+            renderer.AddChild(stage3);
+            m_Level3Backgrounds.push_back(stage3);
+        }
     }
 
-    // ➡️ 更新：根據 worldOffset 移動所有背景（✨ 關鍵修正：兩關都要隨著鏡頭移動！）
+    // ➡️ 更新：根據 worldOffset 移動所有背景
     void Update(float worldOffset) {
-        // 更新 1-1 地表背景位置
+        // 更新 1-1 位置
         for (size_t i = 0; i < m_BackgroundStages.size(); ++i) {
             m_BackgroundStages[i]->SetPosition({ m_OriginalXCoords[i] - worldOffset, 0.0f });
         }
 
-        // ✨ 核心修正：讓第二關背景也能跟著鏡頭捲動！
+        // 更新 1-2 位置
         for (size_t i = 0; i < m_Level2Backgrounds.size(); ++i) {
             m_Level2Backgrounds[i]->SetPosition({ m_Level2OriginalXCoords[i] - worldOffset, 0.0f });
         }
 
-        // 更新 1-1 地下室背景與水管
+        // ✨ 新增：更新 1-3 背景位置
+        for (size_t i = 0; i < m_Level3Backgrounds.size(); ++i) {
+            m_Level3Backgrounds[i]->SetPosition({ m_Level3OriginalXCoords[i] - worldOffset, 0.0f });
+        }
+
+        // 更新 1-1 地下室與水管
         if (m_UndergroundBackground) {
             m_UndergroundBackground->SetPosition({ m_UndergroundOriginalX - worldOffset, 0.0f });
         }
@@ -98,7 +123,6 @@ public:
         }
     }
 
-    // ➡️ 顯示狀態切換（防呆相容原本選單舊 code）
     void SetVisible(bool visible) {
         if (!visible) {
             HideAll();
@@ -118,46 +142,55 @@ public:
         for (auto& stage : m_Level2Backgrounds) {
             if (stage) stage->SetVisible(false);
         }
+
+        // ✨ 新增：大掃除時連同 1-3 一起藏起來
+        for (auto& stage : m_Level3Backgrounds) {
+            if (stage) stage->SetVisible(false);
+        }
     }
 
-    // ➡️ 根據關卡編號顯示對應地圖（切換關卡的核心控制）
+    // ➡️ 根據關卡編號顯示對應地圖
     void ShowLevel(int level) {
         m_CurrentLevel = level;
         HideAll(); // 先全部大掃除隱藏起來！
 
         if (level == 1) {
-            // 顯示 1-1 地表
             for (auto& stage : m_BackgroundStages) {
                 if (stage) stage->SetVisible(true);
             }
-            // 顯示 1-1 地下室
             if (m_UndergroundBackground) m_UndergroundBackground->SetVisible(true);
             if (m_UndergroundPipe) m_UndergroundPipe->SetVisible(true);
         }
         else if (level == 2) {
-            // 顯示 1-2 背景
             for (auto& stage : m_Level2Backgrounds) {
+                if (stage) stage->SetVisible(true);
+            }
+        }
+        // ✨ 新增：切換到第 3 關時顯示 1-3 背景
+        else if (level == 3) {
+            for (auto& stage : m_Level3Backgrounds) {
                 if (stage) stage->SetVisible(true);
             }
         }
     }
 
 private:
-    int m_CurrentLevel = 1; // 紀錄當前關卡
+    int m_CurrentLevel = 1;
 
-    // 1-1 專用變數
     std::vector<std::shared_ptr<Character>> m_BackgroundStages;
     std::vector<float> m_OriginalXCoords;
 
-    // 地下室變數
     std::shared_ptr<Character> m_UndergroundBackground;
     float m_UndergroundOriginalX = 0.0f;
     std::shared_ptr<Character> m_UndergroundPipe;
     float m_UndergroundPipeOriginalX = 0.0f;
 
-    // 1-2 專用變數
     std::vector<float> m_Level2OriginalXCoords;
     std::vector<std::shared_ptr<Character>> m_Level2Backgrounds;
+
+    // ✨ 新增：1-3 專用變數
+    std::vector<float> m_Level3OriginalXCoords;
+    std::vector<std::shared_ptr<Character>> m_Level3Backgrounds;
 };
 
 #endif // MAP_HPP

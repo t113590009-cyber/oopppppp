@@ -19,6 +19,9 @@ void App::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_1)) {
         m_CurrentLevel = 1;
         ResetLevel();
+    }if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) {
+        m_CurrentLevel = 3;
+        ResetLevel();
     }
 
     float dt = Util::Time::GetDeltaTime();
@@ -484,7 +487,7 @@ void App::ResetLevel() {
     m_IsLevelClear = false;
     m_IsFlagSliding = false;
 
-    // ==================== 第一關 (1-1) 重置邏輯 ====================
+    //第一關 (1-1) 重置邏輯
     if (m_CurrentLevel == 1) {
         if (m_Player) {
             m_Player->ResetStatus();
@@ -524,6 +527,24 @@ void App::ResetLevel() {
         // 直接讀取我們在 Map::Init 中一次性預載好的 1-2 獨立背景
 
         LoadLevel2Objects(); // 載入第二關的怪物與方塊
+    }
+    // ==================== 第三關 (1-3) 重置邏輯 ====================
+    else if (m_CurrentLevel == 3) {
+        if (m_Player) {
+            m_Player->ResetStatus();
+            m_Player->SetWorldPosition(-450.0f, -264.0f); // 設定 1-3 出生點
+            if (m_Player->GetCharacter()) {
+                m_Player->GetCharacter()->SetVisible(true);
+            }
+        }
+
+        // 隱藏地表過關物件
+        if (m_Castle) m_Castle->SetVisible(false);
+        if (m_Flagpole) m_Flagpole->SetVisible(false);
+        if (m_Flag) m_Flag->SetVisible(false);
+
+        // ✨ 核心修正：正式呼叫載入 1-3 物件，此處會觸發隱形實體地面，防止瑪利歐摔死！
+        LoadLevel3Objects();
     }
 
     // 確保重新生成的方塊與道具皆為顯示狀態

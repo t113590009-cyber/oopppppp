@@ -94,8 +94,10 @@ private:
 
     int m_CurrentLevel = 1;         // 🌟 記錄目前是第幾關
     bool m_IsExitingCastle = false; // 🌟 記錄第二關開場時，是否正在從城堡走出來
-    bool m_IsStage2Initialized = false;
+
     void LoadLevel2Objects();       // 🍄 第二關 (1-2) 專用的物件鋪設
+    void LoadLevel3Objects();       // ✨ 新增：第三關 (1-3) 專用的物件鋪設
+
     void AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item = Block::ItemType::NONE);
 };
 
