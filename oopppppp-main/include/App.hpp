@@ -18,6 +18,9 @@
 #include "Mushroom.hpp"
 #include "ScoreEffect.hpp"
 
+// 🌟 極重要：必須引入這個，煙火動畫才能正常讀取！
+#include "AnimatedCharacter.hpp" 
+
 #include <memory>
 #include <vector>
 
@@ -48,6 +51,17 @@ private:
     int m_Lives = 3;           // 🌟 瑪利歐的生命數
     float m_GameTime = 400.0f; // 瑪利歐經典的 400 秒倒數
     float m_DeathTimer = 0.0f; // 💀 控制死亡動畫播多久的計時器
+
+    // ==========================================
+    // 🎆 我們新增的煙火與過關動畫專用變數 (合併加回)
+    // ==========================================
+    int m_PendingFireworks = 0;
+    float m_FireworkTimer = 0.0f;
+    std::vector<std::shared_ptr<AnimatedCharacter>> m_ActiveFireworks;
+    std::vector<float> m_FireworkWorldX; // 記錄煙火絕對世界座標
+    float m_ClearGroundY = -264.0f;      // 記錄過關落地高度，防止浮空遁地
+    // ==========================================
+
     void ResetLevel();         // 🔄 重置關卡用的函式
     void LoadLevelObjects();   // 重新生成所有磚塊跟怪物
     std::shared_ptr<TopUI> m_TopUI;
@@ -74,24 +88,26 @@ private:
     std::vector<std::unique_ptr<Goomba>> m_Goombas;
     int m_SpawnPhase = 0;
 
-    // 🐢 烏龜陣列 (你加的完全正確！)
+    // 🐢 烏龜陣列
     std::vector<std::shared_ptr<Koopatroopa>> m_Koopatroopas;
 
-    // 🌟 道具管理系統
+    // 🌟 道具與特效管理系統
     std::vector<std::shared_ptr<Item>> m_Items; // 存放畫面上所有的道具 (蘑菇/星星/金幣)
     std::vector<std::shared_ptr<Fireball>> m_Fireballs;
-    // 分數特效系統
-    std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects;
+    std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects; // 分數特效系統
 
     // 💀 失敗畫面 UI 與延遲計時器
     std::shared_ptr<Character> m_FailScreen;
 
     // 🚩 過關動畫控制系統
-    bool m_IsLevelClear = false;      // 是否已經碰到旗桿（碰到後停止玩家鍵盤控制）
+    bool m_IsLevelClear = false;      // 是否已經碰到旗桿
     bool m_IsFlagSliding = false;     // 是否正在往下滑
     bool m_IsWalkingToCastle = false; // 是否正在走向城堡
     float m_LevelClearTimer = 0.0f;   // 用來控制落地後的停頓或轉圈時間
 
+    // ==========================================
+    // 🗺️ 同學新增的關卡與地圖邏輯
+    // ==========================================
     int m_CurrentLevel = 1;         // 🌟 記錄目前是第幾關
     bool m_IsExitingCastle = false; // 🌟 記錄第二關開場時，是否正在從城堡走出來
 
