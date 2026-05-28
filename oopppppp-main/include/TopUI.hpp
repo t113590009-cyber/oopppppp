@@ -1,35 +1,39 @@
 #ifndef TOPUI_HPP
 #define TOPUI_HPP
 
-
 #include "Character.hpp"
+#include "Util/Image.hpp" 
 #include <vector>
 #include <memory>
 #include <string>
+#include <map>            
 
 class TopUI {
 public:
     TopUI();
 
-    // 每次 Update 時把最新的數字傳進來
-    void Update(int score, int coins, int time);
+    // 🌟 加上 level 參數，讓 UI 知道現在是第幾關
+    void Update(int score, int coins, int time, int level = 1);
 
-    // 🌟 新增：控制整個 UI 顯示或隱藏的開關
     void SetVisible(bool visible);
-
-    // 給 App 把所有 UI 圖片拿去畫的函式
     std::vector<std::shared_ptr<Character>> GetDrawables() const;
 
 private:
-    std::shared_ptr<Character> m_TopText;                  // MARIO WORLD TIME 的底圖
-    std::vector<std::shared_ptr<Character>> m_ScoreDigits; // 分數的 6 個數字
-    std::vector<std::shared_ptr<Character>> m_CoinDigits;  // 金幣的 2 個數字
-    std::vector<std::shared_ptr<Character>> m_TimeDigits;  // 時間的 3 個數字
+    std::shared_ptr<Character> m_TopText;
+    std::vector<std::shared_ptr<Character>> m_ScoreDigits;
+    std::vector<std::shared_ptr<Character>> m_CoinDigits;
+    std::vector<std::shared_ptr<Character>> m_TimeDigits;
+    std::vector<std::shared_ptr<Character>> m_WorldDigits; // 🌟 裝 WORLD 1 - 1 數字的容器
 
-    // 輔助函式：建立特定數量的數字圖片
     void CreateDigits(std::vector<std::shared_ptr<Character>>& digits, int count, float startX, float startY);
-    // 輔助函式：更新數字圖片
     void UpdateDigits(int value, std::vector<std::shared_ptr<Character>>& digits);
+
+    int m_LastScore = -1;
+    int m_LastCoins = -1;
+    int m_LastTime = -1;
+    int m_LastLevel = -1; // 🌟 紀錄上次的關卡，沒換關就不重繪
+
+    std::map<char, std::shared_ptr<Util::Image>> m_NumberImages;
 };
 
-#endif
+#endif // TOPUI_HPP
