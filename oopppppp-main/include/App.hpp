@@ -52,15 +52,12 @@ private:
     float m_GameTime = 400.0f; // 瑪利歐經典的 400 秒倒數
     float m_DeathTimer = 0.0f; // 💀 控制死亡動畫播多久的計時器
 
-    // ==========================================
     // 🎆 我們新增的煙火與過關動畫專用變數 (合併加回)
-    // ==========================================
     int m_PendingFireworks = 0;
     float m_FireworkTimer = 0.0f;
     std::vector<std::shared_ptr<AnimatedCharacter>> m_ActiveFireworks;
     std::vector<float> m_FireworkWorldX; // 記錄煙火絕對世界座標
     float m_ClearGroundY = -264.0f;      // 記錄過關落地高度，防止浮空遁地
-    // ==========================================
 
     void ResetLevel();         // 🔄 重置關卡用的函式
     void LoadLevelObjects();   // 重新生成所有磚塊跟怪物
@@ -113,6 +110,10 @@ private:
 
     void LoadLevel2Objects();       // 🍄 第二關 (1-2) 專用的物件鋪設
     void LoadLevel3Objects();       // ✨ 新增：第三關 (1-3) 專用的物件鋪設
+
+    void UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles);
+    void UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstacles, const glm::vec2& pPos);
+    void HandleLevel1ClearAnimation(float dt, float marioWorldX);
 
     void AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item = Block::ItemType::NONE);
 };

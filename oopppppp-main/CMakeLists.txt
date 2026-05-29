@@ -25,7 +25,9 @@ file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp")
 # --- 3. 建立執行檔 ---
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} "src/Block.cpp" "src/Goomba.cpp" "src/Mushroom.cpp" "src/Star.cpp" "src/Coin.cpp" "src/ScoreEffect.cpp" "src/TopUI.cpp"
         include/Koopatroopa.hpp
-        src/Koopatroopa.cpp "src/FireFlower.cpp" "src/Fireball.cpp")
+        src/Koopatroopa.cpp "src/FireFlower.cpp" "src/Fireball.cpp"
+        src/AppUpdate_Entities.cpp
+        src/AppUpdate_Level.cpp)
 
 # --- 4. 編譯選項設定 ---
 if(MSVC)
