@@ -195,17 +195,101 @@ void App::LoadLevelObjects() {
 }
 
 void App::LoadLevel2Objects() {
-    float ROW_1_Y = -72.0f;
-
-    // 🌟 修正：只有進入第二關時，這裡才會配合 ResetLevel() 確保可見
     if (m_Map) {
         m_Map->SetVisible(true);
     }
 
-    AddBlock(Block::Type::BRICK_FRAGILE, 10, ROW_1_Y);
-    AddBlock(Block::Type::QUESTION, 12, ROW_1_Y, Block::ItemType::MUSHROOM);
+    // ⚙️ 【純格子對齊工具組】 (完全不需要計算 float，直接填格數！)
 
-    m_Collision.AddObstacle(-1000.0f, -360.0f, 10000.0f, 96.0f);
+    // 工具 A：單格生成器
+    auto AddBlockByGrid = [this](Block::Type type, int imgNum, int col, int row, Block::ItemType item = Block::ItemType::NONE) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (static_cast<float>(col) * 48.0f) + 24.0f;
+        float worldY = -360.0f + (static_cast<float>(row) * 48.0f); // 自動對齊縱向格子
+
+        auto block = std::make_shared<Block>(type, glm::vec2{ worldX, worldY });
+        block->SetItemType(item);
+        m_Blocks.push_back(block);
+        m_Root.AddChild(block->GetCharacter());
+    };
+
+    // 工具 B：整排磚塊鋪設器
+    auto SpawnBricksByGrid = [&](int imgNum, int startCol, int endCol, int row) {
+        for (int col = startCol; col <= endCol; ++col) {
+            AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
+        }
+    };
+
+    // 工具 C：實體/空氣牆碰撞箱鋪設器
+    // 💡 邏輯已直接修改：將大範圍「包起來」，自動切割並鋪滿 48x48 的標準碰撞方塊，徹底根除大面積穿模！
+    auto AddObstacleByGrid = [this](int startImg, int startCol, int endImg, int endCol, int startRow, int endRow) {
+        // 先算出整個大範圍的絕對 X 座標起點與終點
+        float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (static_cast<float>(startCol) * 48.0f);
+        float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (static_cast<float>(endCol) * 48.0f) + 48.0f;
+
+        // 計算這段範圍總共包含了幾個寬度 (Column)
+        int colsCount = std::round((totalEndX - totalStartX) / 48.0f);
+
+        // 用雙重迴圈將這個範圍徹底填滿標準的 48x48 隱形方塊
+        for (int i = 0; i < colsCount; ++i) {
+            float currentX = totalStartX + (static_cast<float>(i) * 48.0f);
+
+            for (int r = startRow; r <= endRow; ++r) {
+                float currentY = -360.0f + static_cast<float>(r) * 48.0f;
+                // 每次只餵給物理引擎最標準的 48x48 尺寸，保證判定絕對精準
+                m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
+            }
+        }
+    };
+
+    // 🧱 【純格子地圖配置區】 依照要求：數值完全不更動！
+
+    AddObstacleByGrid(1, 0, 1, 15, 0, 1);
+    AddObstacleByGrid(2,2,2,5,2,2);
+    AddObstacleByGrid(2,3,2,4,0,1);
+    AddObstacleByGrid(2,8,2,15,5,5);
+    AddObstacleByGrid(2,9,2,14,0,4);
+    AddObstacleByGrid(2,10,2,14,9,9);
+    AddObstacleByGrid(2,11,2,13,6,8);
+    AddObstacleByGrid(3,0,3,2,2,2);
+    AddObstacleByGrid(3,1,3,1,0,1);
+    AddObstacleByGrid(3,3,3,7,6,6);
+    AddObstacleByGrid(3,4,3,6,0,5);
+    AddObstacleByGrid(3,8,3,14,10,10);
+    AddObstacleByGrid(3,9,3,13,0,9);
+    AddObstacleByGrid(4,2,4,5,1,1);
+    AddObstacleByGrid(4,3,4,4,0,0);
+    AddObstacleByGrid(4,12,4,15,9,9);
+    AddObstacleByGrid(4,13,4,14,2,8);
+    AddObstacleByGrid(4,11,4,15,1,1);
+    AddObstacleByGrid(4,12,4,14,0,0);
+    AddObstacleByGrid(5,1,5,5,1,1);
+    AddObstacleByGrid(5,2,5,4,0,0);
+    AddObstacleByGrid(5,6,5,8,5,5);
+    AddObstacleByGrid(5,7,5,7,0,4);
+    AddObstacleByGrid(5,12,5,15,8,8);
+    AddObstacleByGrid(6,0,6,1,8,8);
+    AddObstacleByGrid(5,13,5,15,0,7);
+    AddObstacleByGrid(6,0,6,0,0,7);
+    AddObstacleByGrid(7,2,7,5,3,3);
+    AddObstacleByGrid(7,3,7,4,0,2);
+    AddObstacleByGrid(7,8,7,15,7,7);
+    AddObstacleByGrid(7,9,7,14,0,6);
+    AddObstacleByGrid(8,1,8,3,1,1);
+    AddObstacleByGrid(8,2,8,2,0,0);
+    AddObstacleByGrid(8,4,8,7,5,5);
+    AddObstacleByGrid(8,5,8,6,0,4);
+    AddObstacleByGrid(8,10,8,13,5,5);
+    AddObstacleByGrid(8,11,8,12,0,4);
+    AddObstacleByGrid(9,1,9,15,0,1);
+    AddObstacleByGrid(9,10,9,15,2,5);
+    AddObstacleByGrid(9,12,9,15,6,7);
+    AddObstacleByGrid(9,14,9,15,8,9);
+    AddObstacleByGrid(10,0,10,15,0,1);
+    AddObstacleByGrid(11,0,11,3,0,1);
+
+    // 📍 2. 問號箱、磚塊箱
+    // SpawnBricksByGrid(2, 3, 12, 8);
 }
 
 void App::LoadLevel3Objects() {
