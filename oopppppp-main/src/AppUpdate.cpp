@@ -4,42 +4,162 @@
 #include "Util/Time.hpp"
 #include "Fireball.hpp"
 
+// 🌟 一鍵隱藏/顯示遊戲背景的小幫手
+void App::SetGameElementsVisible(bool visible) {
+    if (m_Map) m_Map->SetVisible(visible);
+    if (m_Castle) m_Castle->SetVisible(visible);
+    if (m_Flagpole) m_Flagpole->SetVisible(visible);
+    if (m_Flag) m_Flag->SetVisible(visible);
+    if (m_Player && m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(visible);
+    for (auto& block : m_Blocks) if (block && block->GetCharacter()) block->GetCharacter()->SetVisible(visible);
+    if (m_TopUI) m_TopUI->SetVisible(visible);
+}
+
 void App::Update() {
+    float dt = Util::Time::GetDeltaTime();
+
+    // ==========================================
+    // 🌟 懶人載入法：遊戲一開先把 hp.png 與 fail.png 準備好
+    // ==========================================
+    if (!m_LifeBg) {
+        m_LifeBg = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/hp.png");
+        m_LifeBg->SetZIndex(98);
+        m_LifeBg->m_Transform.scale = { 3.0f, 3.0f };
+        m_LifeBg->SetPosition({ 0.0f, 0.0f });
+        m_Root.AddChild(m_LifeBg);
+
+        m_LifeWorldNum = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/top/1.png");
+        m_LifeWorldNum->SetZIndex(99);
+        m_Root.AddChild(m_LifeWorldNum);
+
+        m_LifeStageNum = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/top/1.png");
+        m_LifeStageNum->SetZIndex(99);
+        m_Root.AddChild(m_LifeStageNum);
+
+        m_LifeCountNum = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/top/3.png");
+        m_LifeCountNum->SetZIndex(99);
+        m_Root.AddChild(m_LifeCountNum);
+
+        m_LifeBg->SetVisible(false);
+        m_LifeWorldNum->SetVisible(false);
+        m_LifeStageNum->SetVisible(false);
+        m_LifeCountNum->SetVisible(false);
+    }
+
+    if (!m_FailScreen) {
+        m_FailScreen = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/fail.png");
+        m_FailScreen->SetZIndex(100);
+        m_FailScreen->m_Transform.scale = { 3.0f, 3.0f };
+        m_FailScreen->SetPosition({ 0.0f, 0.0f });
+        m_Root.AddChild(m_FailScreen);
+        m_FailScreen->SetVisible(false);
+    }
+
+    static bool s_ShowGameOver = false;
+    static float s_GameOverTimer = 0.0f;
+
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) { m_CurrentLevel = 2; ResetLevel(); }
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_1)) { m_CurrentLevel = 1; ResetLevel(); }
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) { m_CurrentLevel = 3; ResetLevel(); }
-
-    float dt = Util::Time::GetDeltaTime();
 
     // --- 1. 選單邏輯 ---
     if (m_Menu->GetVisibility()) {
         m_Menu->Update(dt);
         if (m_Menu->IsStartPressed()) {
             m_Menu->SetVisible(false);
-            if (m_Player && m_Player->GetCharacter()) {
-                m_Player->GetCharacter()->SetVisible(true);
-                m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
-            }
-            if (m_Map) m_Map->SetVisible(true);
-            if (m_Castle) m_Castle->SetVisible(true);
-            if (m_Flagpole) m_Flagpole->SetVisible(true);
-            if (m_Flag) m_Flag->SetVisible(true);
 
-            for (auto& block : m_Blocks) {
-                if (block->GetCharacter()) block->GetCharacter()->SetVisible(true);
-            }
-            if (m_TopUI) m_TopUI->SetVisible(true);
+            m_Lives = 3; m_Score = 0; m_Coins = 0; m_CurrentLevel = 1;
+
+            m_ShowLifeScreen = true;
+            m_LifeScreenTimer = 2.5f;
+            SetGameElementsVisible(false);
         }
     }
-    // --- 2. 遊戲主迴圈邏輯 ---
+    // --- 2. 💀 GAME OVER 畫面邏輯 ---
+    else if (s_ShowGameOver) {
+        s_GameOverTimer -= dt;
+
+        if (s_GameOverTimer <= 0.0f) {
+            s_ShowGameOver = false;
+            m_FailScreen->SetVisible(false);
+
+            m_CurrentState = State::START;
+            m_Menu->SetVisible(true);
+
+            ResetLevel();
+            SetGameElementsVisible(false);
+        }
+    }
+    // --- 3. 🌟 生命值過場邏輯 ---
+    else if (m_ShowLifeScreen) {
+
+        static bool s_isLifeUIReady = false;
+
+        if (!s_isLifeUIReady) {
+            s_isLifeUIReady = true;
+
+            m_LifeBg->SetDrawable(std::make_shared<Util::Image>(GA_RESOURCE_DIR"/Image/UI/hp.png"));
+            m_LifeBg->m_Transform.scale = { 3.0f, 3.0f };
+            m_LifeBg->SetPosition({ 0.0f, 0.0f });
+            m_LifeBg->SetZIndex(98);
+            m_LifeBg->SetVisible(true);
+
+            m_LifeWorldNum->SetDrawable(std::make_shared<Util::Image>(GA_RESOURCE_DIR"/Image/UI/top/1.png"));
+            m_LifeWorldNum->m_Transform.scale = { 3.0f, 3.0f };
+            m_LifeWorldNum->SetPosition({ 36.0f, 108.0f });
+            m_LifeWorldNum->SetZIndex(99);
+            m_LifeWorldNum->SetVisible(true);
+
+            m_LifeStageNum->SetDrawable(std::make_shared<Util::Image>(GA_RESOURCE_DIR"/Image/UI/top/" + std::to_string(m_CurrentLevel) + ".png"));
+            m_LifeStageNum->m_Transform.scale = { 3.0f, 3.0f };
+            m_LifeStageNum->SetPosition({ 84.0f, 108.0f });
+            m_LifeStageNum->SetZIndex(99);
+            m_LifeStageNum->SetVisible(true);
+
+            m_LifeCountNum->SetDrawable(std::make_shared<Util::Image>(GA_RESOURCE_DIR"/Image/UI/top/" + std::to_string(m_Lives) + ".png"));
+            m_LifeCountNum->m_Transform.scale = { 3.0f, 3.0f };
+            m_LifeCountNum->SetPosition({ 48.0f, 12.0f });
+            m_LifeCountNum->SetZIndex(99);
+            m_LifeCountNum->SetVisible(true);
+        }
+
+        m_LifeScreenTimer -= dt;
+
+        if (m_LifeScreenTimer <= 0.0f) {
+            m_ShowLifeScreen = false;
+            s_isLifeUIReady = false;
+
+            m_LifeBg->SetVisible(false);
+            m_LifeWorldNum->SetVisible(false);
+            m_LifeStageNum->SetVisible(false);
+            m_LifeCountNum->SetVisible(false);
+
+            // ==========================================
+            // 🌟 核心修復點：順序對調！先開後關！
+            // ==========================================
+            SetGameElementsVisible(true); // 先強制讓畫面上所有東西顯示
+            ResetLevel(); // 再交給 ResetLevel() 把 1-2 該隱藏的旗桿跟城堡關掉
+        }
+    }
+    // --- 4. 遊戲主迴圈邏輯 ---
     else {
         if (m_Player->IsDead()) {
             m_DeathTimer += dt;
             if (m_DeathTimer > 2.5f) {
                 m_Lives--;
                 m_DeathTimer = 0.0f;
-                if (m_Lives > 0) ResetLevel();
-                else m_CurrentState = State::END;
+
+                if (m_Lives > 0) {
+                    m_ShowLifeScreen = true;
+                    m_LifeScreenTimer = 2.5f;
+                    SetGameElementsVisible(false);
+                }
+                else {
+                    s_ShowGameOver = true;
+                    s_GameOverTimer = 4.0f;
+                    m_FailScreen->SetVisible(true);
+                    SetGameElementsVisible(false);
+                }
             }
         }
         else {
@@ -66,23 +186,19 @@ void App::Update() {
                 }
             }
 
-            // 🌟 收集所有碰撞箱
             std::vector<Rect> allObstacles = m_Collision.GetObstacles();
             for (const auto& block : m_Blocks) {
                 Rect hit = block->GetHitbox();
                 if (hit.width > 0) allObstacles.push_back(hit);
             }
 
-            // 🌟 呼叫瘦身後的函式：更新物件與敵人
             UpdateBlocksAndItems(dt, allObstacles);
             UpdateEnemiesAndFireballs(dt, allObstacles, pPos);
 
-            // 🌟 呼叫瘦身後的函式：過關動畫
             if (m_CurrentLevel == 1) {
                 HandleLevel1ClearAnimation(dt, pPos.x + m_WorldOffset);
             }
 
-            // 更新特效與殘留煙火
             for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
                 (*it)->Update(dt, m_WorldOffset);
                 if ((*it)->IsDone()) { m_Root.RemoveChild((*it)->GetDrawable()); it = m_ScoreEffects.erase(it); }
@@ -92,10 +208,9 @@ void App::Update() {
                 auto& fw = m_ActiveFireworks[i];
                 fw->SetPosition({ m_FireworkWorldX[i] - m_WorldOffset, fw->GetPosition().y });
                 if (fw->IfAnimationEnds()) {
-                    m_Root.RemoveChild(fw);
-                    m_ActiveFireworks.erase(m_ActiveFireworks.begin() + i);
-                    m_FireworkWorldX.erase(m_FireworkWorldX.begin() + i);
-                } else ++i;
+                    m_Root.RemoveChild(fw); m_ActiveFireworks.erase(m_ActiveFireworks.begin() + i); m_FireworkWorldX.erase(m_FireworkWorldX.begin() + i);
+                }
+                else ++i;
             }
 
             if (m_Map) m_Map->Update(m_WorldOffset);

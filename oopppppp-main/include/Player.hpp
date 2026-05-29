@@ -33,8 +33,8 @@ public:
     void GrowUp();
     void TakeDamage();
     void GetStar();
-    void GetFireFlower(); // 🔥 吃火之花變身
-    void Die();           // 💀 死亡函式
+    void GetFireFlower();
+    void Die();
 
     // 過關旗桿邏輯
     void StartFlagSlide(float poleWorldX);
@@ -45,17 +45,20 @@ public:
     Rect GetFeetRect(float worldOffset) const;
     std::shared_ptr<AnimatedCharacter> GetCharacter() const { return m_Mario; }
     glm::vec2 GetPosition() const { return m_Mario->GetPosition(); }
+
+    // 🌟 原版物理系統需要提供雙軸速度
     float GetVelocityY() const { return m_Velocity.y; }
+    float GetVelocityX() const { return m_Velocity.x; }
 
     // 狀態讀取
     bool IsStarMode() const { return m_IsStarMode; }
     bool IsOnGround() const { return m_IsOnGround; }
     bool IsDead() const { return m_CurrentState == AnimState::DEAD; }
 
-    void ResetStatus(); // 🌟 復活重置
+    void ResetStatus();
 
     bool IsBig() const { return m_IsBig; }
-    bool IsFire() const { return m_IsFire; } // 🔥 火球狀態
+    bool IsFire() const { return m_IsFire; }
 
     void SetState(AnimState state);
     AnimState GetState() const { return m_CurrentState; }
@@ -91,12 +94,20 @@ private:
     float m_RunAnimTimer = 0.0f;
     int m_RunFrameIndex = 0;
 
-    // --- 物理與位置變數 ---
-    glm::vec2 m_Velocity = { 0.0f, 0.0f };
+    // ==========================================
+    // 🏃 原版 NES 物理狀態與變數 (新增/改寫)
+    // ==========================================
+    glm::vec2 m_Velocity = { 0.0f, 0.0f }; // X和Y的速度
 
-    float m_WalkSpeed = 5.5f;
-    float m_JumpImpulse = 24.0f;
-    float m_Gravity = 1.0f;
+    bool m_IsSkidding = false; // 是否正在煞車打滑
+    bool m_WasJumping = false; // 紀錄前一幀是否按住跳躍 (用來控制動態重力)
+    bool m_FacingRight = true; // 面向右邊
+
+    // 將 NES 的 "像素/幀" 轉換為我們引擎的 "像素/秒" 
+    // 假設 60 FPS 且圖片放大 3 倍，係數約為 180.0f
+    const float NES_SCALE = 180.0f;
+
+    // 原本簡單的 m_WalkSpeed, m_JumpImpulse, m_Gravity 被淘汰了！
 
     float m_WarpStartY = 0.0f;
     float m_WarpStartX = 0.0f;

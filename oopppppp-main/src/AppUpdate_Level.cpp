@@ -13,7 +13,8 @@ void App::HandleLevel1ClearAnimation(float dt, float marioWorldX) {
         int timeDigit = static_cast<int>(m_GameTime) % 10;
         if (timeDigit == 1 || timeDigit == 3 || timeDigit == 6) {
             m_PendingFireworks = timeDigit;
-        } else {
+        }
+        else {
             m_PendingFireworks = 0;
         }
         m_FireworkTimer = 0.0f;
@@ -46,7 +47,8 @@ void App::HandleLevel1ClearAnimation(float dt, float marioWorldX) {
         glm::vec2 flagPos = m_Flag->GetPosition();
         if (flagPos.y > -185.0f) {
             m_Flag->SetPosition({ 9120.0f - m_WorldOffset, flagPos.y - (300.0f * dt) });
-        } else {
+        }
+        else {
             flagReachedBottom = true;
         }
 
@@ -55,7 +57,8 @@ void App::HandleLevel1ClearAnimation(float dt, float marioWorldX) {
 
         if (marioCharPos.y > groundY) {
             m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, marioCharPos.y - (300.0f * dt) });
-        } else {
+        }
+        else {
             m_Player->GetCharacter()->SetPosition({ 9147.0f - m_WorldOffset - 10.0f, groundY });
             marioReachedBottom = true;
         }
@@ -89,15 +92,18 @@ void App::HandleLevel1ClearAnimation(float dt, float marioWorldX) {
             m_Player->GetCharacter()->SetPosition({ marioWorldX - m_WorldOffset, m_ClearGroundY });
             m_Player->GetCharacter()->Play();
             m_Player->GetCharacter()->m_Transform.scale.x = 3.0f;
-        } else {
+        }
+        else {
             m_Player->GetCharacter()->SetVisible(false);
 
             if (m_GameTime >= 1.0f) {
                 m_GameTime -= 1.0f;
                 m_Score += 50;
-            } else if (m_GameTime > 0.0f) {
+            }
+            else if (m_GameTime > 0.0f) {
                 m_GameTime = 0.0f;
-            } else {
+            }
+            else {
                 if (m_PendingFireworks > 0) {
                     m_FireworkTimer -= dt;
                     if (m_FireworkTimer <= 0.0f) {
@@ -128,11 +134,16 @@ void App::HandleLevel1ClearAnimation(float dt, float marioWorldX) {
                         m_Root.AddChild(score->GetDrawable());
                         m_ScoreEffects.push_back(score);
                     }
-                } else if (m_ActiveFireworks.empty()) {
+                }
+                else if (m_ActiveFireworks.empty()) {
                     m_LevelClearTimer += dt;
                     if (m_LevelClearTimer >= 2.0f) {
+                        // 🌟 攔截點：煙火放完等兩秒後，不要直接進入下一關！
+                        // 我們在這裡改變關卡，但將主控權交給 AppUpdate 的過場系統
                         m_CurrentLevel = 2;
-                        ResetLevel();
+                        m_ShowLifeScreen = true;
+                        m_LifeScreenTimer = 2.5f;
+                        SetGameElementsVisible(false); // 隱藏後面已經過完的背景
                     }
                 }
             }

@@ -70,7 +70,7 @@ void TopUI::Update(int score, int coins, int time, int level) {
 
 void TopUI::UpdateDigits(int value, std::vector<std::shared_ptr<Character>>& digits) {
     std::string valStr = std::to_string(value);
-    int padding = digits.size() - valStr.length();
+    int padding = static_cast<int>(digits.size()) - static_cast<int>(valStr.length());
 
     if (padding < 0) {
         valStr = std::string(digits.size(), '9');
