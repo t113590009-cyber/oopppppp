@@ -9,68 +9,65 @@ Player::Player() {
     // 🍄 載入正常狀態 (無星) 的瑪利歐
     // ==========================================
     m_SmallStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/stand.png" };
-    m_SmallRunImages = {
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run1.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run2.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run3.png"
-    };
+    m_SmallRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run3.png" };
     m_SmallJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/jump.png" };
     m_SmallCrouchImages = m_SmallStandImages;
+    m_SmallSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/sprint.png" };
 
     m_BigStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/stand.png" };
-    m_BigRunImages = {
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run2.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run3.png"
-    };
+    m_BigRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run3.png" };
     m_BigJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/jump.png" };
     m_BigCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/squat.png" };
+    m_BigSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/sprint.png" };
 
     // ==========================================
     // 🔥 載入火球狀態 (Fire) 的瑪利歐
     // ==========================================
     m_FireStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/stand.png" };
-    m_FireRunImages = {
-        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run2.png",
-        GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run3.png"
-    };
+    m_FireRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run3.png" };
     m_FireJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/jump.png" };
     m_FireCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/squat.png" };
+    m_FireSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/sprint.png" };
 
     // ==========================================
-    // ⭐ 載入星星狀態 1, 2, 3 (Star1 ~ Star3)
+    // ⭐ 載入星星狀態 1, 2, 3 
     // ==========================================
     m_Star1_SmallStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/stand.png" };
     m_Star1_SmallRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/run3.png" };
     m_Star1_SmallJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/jump.png" };
     m_Star1_SmallCrouchImages = m_Star1_SmallStandImages;
+    m_Star1_SmallSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/small/sprint.png" };
+
     m_Star1_BigStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/stand.png" };
     m_Star1_BigRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/run3.png" };
     m_Star1_BigJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/jump.png" };
     m_Star1_BigCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/squat.png" };
+    m_Star1_BigSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/big/sprint.png" };
 
     m_Star2_SmallStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/stand.png" };
     m_Star2_SmallRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/run3.png" };
     m_Star2_SmallJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/jump.png" };
     m_Star2_SmallCrouchImages = m_Star2_SmallStandImages;
+    m_Star2_SmallSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/small/sprint.png" };
+
     m_Star2_BigStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/stand.png" };
     m_Star2_BigRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/run3.png" };
     m_Star2_BigJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/jump.png" };
     m_Star2_BigCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/squat.png" };
+    m_Star2_BigSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/big/sprint.png" };
 
     m_Star3_SmallStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/stand.png" };
     m_Star3_SmallRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/run3.png" };
     m_Star3_SmallJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/jump.png" };
     m_Star3_SmallCrouchImages = m_Star3_SmallStandImages;
+    m_Star3_SmallSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/small/sprint.png" };
+
     m_Star3_BigStandImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/stand.png" };
     m_Star3_BigRunImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/run3.png" };
     m_Star3_BigJumpImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/jump.png" };
     m_Star3_BigCrouchImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/squat.png" };
+    m_Star3_BigSprintImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star3/big/sprint.png" };
 
-    // ==========================================
-    // 💫 載入變身與死亡過場
-    // ==========================================
     m_ChangeImages = { GA_RESOURCE_DIR"/Image/Character/mario/normal/change/change1.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/change/change2.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/change/change3.png" };
     m_Star1_ChangeImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/change/change1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/change/change2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star1/change/change3.png" };
     m_Star2_ChangeImages = { GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/change/change1.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/change/change2.png", GA_RESOURCE_DIR"/Image/Character/mario/star/overworld/star2/change/change3.png" };
@@ -89,30 +86,57 @@ void Player::RefreshAnimations() {
         if (m_IsFire) {
             m_CurrentRunImages = &m_FireRunImages; m_CurrentStandImages = &m_FireStandImages;
             m_CurrentJumpImages = &m_FireJumpImages; m_CurrentCrouchImages = &m_FireCrouchImages;
+            m_CurrentSprintImages = &m_FireSprintImages;
         }
         else if (m_IsBig) {
             m_CurrentRunImages = &m_BigRunImages; m_CurrentStandImages = &m_BigStandImages;
             m_CurrentJumpImages = &m_BigJumpImages; m_CurrentCrouchImages = &m_BigCrouchImages;
+            m_CurrentSprintImages = &m_BigSprintImages;
         }
         else {
             m_CurrentRunImages = &m_SmallRunImages; m_CurrentStandImages = &m_SmallStandImages;
             m_CurrentJumpImages = &m_SmallJumpImages; m_CurrentCrouchImages = &m_SmallCrouchImages;
+            m_CurrentSprintImages = &m_SmallSprintImages;
         }
     }
     else if (m_StarColorIndex == 1) {
         m_CurrentChangeImages = &m_Star1_ChangeImages;
-        if (m_IsBig) { m_CurrentRunImages = &m_Star1_BigRunImages; m_CurrentStandImages = &m_Star1_BigStandImages; m_CurrentJumpImages = &m_Star1_BigJumpImages; m_CurrentCrouchImages = &m_Star1_BigCrouchImages; }
-        else { m_CurrentRunImages = &m_Star1_SmallRunImages; m_CurrentStandImages = &m_Star1_SmallStandImages; m_CurrentJumpImages = &m_Star1_SmallJumpImages; m_CurrentCrouchImages = &m_Star1_SmallCrouchImages; }
+        if (m_IsBig) {
+            m_CurrentRunImages = &m_Star1_BigRunImages; m_CurrentStandImages = &m_Star1_BigStandImages;
+            m_CurrentJumpImages = &m_Star1_BigJumpImages; m_CurrentCrouchImages = &m_Star1_BigCrouchImages;
+            m_CurrentSprintImages = &m_Star1_BigSprintImages;
+        }
+        else {
+            m_CurrentRunImages = &m_Star1_SmallRunImages; m_CurrentStandImages = &m_Star1_SmallStandImages;
+            m_CurrentJumpImages = &m_Star1_SmallJumpImages; m_CurrentCrouchImages = &m_Star1_SmallCrouchImages;
+            m_CurrentSprintImages = &m_Star1_SmallSprintImages;
+        }
     }
     else if (m_StarColorIndex == 2) {
         m_CurrentChangeImages = &m_Star2_ChangeImages;
-        if (m_IsBig) { m_CurrentRunImages = &m_Star2_BigRunImages; m_CurrentStandImages = &m_Star2_BigStandImages; m_CurrentJumpImages = &m_Star2_BigJumpImages; m_CurrentCrouchImages = &m_Star2_BigCrouchImages; }
-        else { m_CurrentRunImages = &m_Star2_SmallRunImages; m_CurrentStandImages = &m_Star2_SmallStandImages; m_CurrentJumpImages = &m_Star2_SmallJumpImages; m_CurrentCrouchImages = &m_Star2_SmallCrouchImages; }
+        if (m_IsBig) {
+            m_CurrentRunImages = &m_Star2_BigRunImages; m_CurrentStandImages = &m_Star2_BigStandImages;
+            m_CurrentJumpImages = &m_Star2_BigJumpImages; m_CurrentCrouchImages = &m_Star2_BigCrouchImages;
+            m_CurrentSprintImages = &m_Star2_BigSprintImages;
+        }
+        else {
+            m_CurrentRunImages = &m_Star2_SmallRunImages; m_CurrentStandImages = &m_Star2_SmallStandImages;
+            m_CurrentJumpImages = &m_Star2_SmallJumpImages; m_CurrentCrouchImages = &m_Star2_SmallCrouchImages;
+            m_CurrentSprintImages = &m_Star2_SmallSprintImages;
+        }
     }
     else if (m_StarColorIndex == 3) {
         m_CurrentChangeImages = &m_Star3_ChangeImages;
-        if (m_IsBig) { m_CurrentRunImages = &m_Star3_BigRunImages; m_CurrentStandImages = &m_Star3_BigStandImages; m_CurrentJumpImages = &m_Star3_BigJumpImages; m_CurrentCrouchImages = &m_Star3_BigCrouchImages; }
-        else { m_CurrentRunImages = &m_Star3_SmallRunImages; m_CurrentStandImages = &m_Star3_SmallStandImages; m_CurrentJumpImages = &m_Star3_SmallJumpImages; m_CurrentCrouchImages = &m_Star3_SmallCrouchImages; }
+        if (m_IsBig) {
+            m_CurrentRunImages = &m_Star3_BigRunImages; m_CurrentStandImages = &m_Star3_BigStandImages;
+            m_CurrentJumpImages = &m_Star3_BigJumpImages; m_CurrentCrouchImages = &m_Star3_BigCrouchImages;
+            m_CurrentSprintImages = &m_Star3_BigSprintImages;
+        }
+        else {
+            m_CurrentRunImages = &m_Star3_SmallRunImages; m_CurrentStandImages = &m_Star3_SmallStandImages;
+            m_CurrentJumpImages = &m_Star3_SmallJumpImages; m_CurrentCrouchImages = &m_Star3_SmallCrouchImages;
+            m_CurrentSprintImages = &m_Star3_SmallSprintImages;
+        }
     }
 }
 
@@ -130,7 +154,6 @@ void Player::TakeDamage() {
     if (m_IsBig || m_IsFire) {
         m_IsBig = false; m_IsFire = false; m_InvincibleTimer = 2.0f;
         RefreshAnimations(); m_CurrentState = AnimState::CHANGING; m_ChangeTimer = 0.4f; m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
-        LOG_DEBUG("Mario: Big/Fire -> Small (Invincible for 2s)");
     }
     else {
         Die();
@@ -143,7 +166,7 @@ void Player::Die() {
     if (!m_DeadImages.empty()) m_Mario->SetAnimation(m_DeadImages);
     m_Mario->m_Transform.scale = { 3.0f, 3.0f };
     m_Velocity.x = 0.0f;
-    m_Velocity.y = 15.0f * NES_SCALE; // 給一個強烈的死亡彈跳初速
+    m_Velocity.y = 15.0f * NES_SCALE;
 }
 
 void Player::ResetStatus() {
@@ -159,12 +182,8 @@ void Player::GetStar() {
     m_IsStarMode = true; m_StarTimer = 10.0f; m_StarColorIndex = 1; m_StarAnimTimer = 0.05f; RefreshAnimations();
 }
 
-// ==========================================
-// 🚀 核心更新：原版宮本茂物理引擎實裝！
-// ==========================================
 void Player::Update(float& worldOffset, const CollisionHandler& collision, std::vector<std::shared_ptr<Block>>& blocks, float deltaTime) {
 
-    // 🚩 1. 特殊狀態處理 (旗桿、死亡)
     if (m_CurrentState == AnimState::FLAG_SLIDE) { m_Mario->m_Transform.scale = { 3.0f, 3.0f }; return; }
 
     glm::vec2 currentPos = m_Mario->GetPosition();
@@ -181,11 +200,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         return;
     }
 
-    if (Util::Input::IsKeyPressed(Util::Keycode::P)) {
-        LOG_DEBUG("📍 瑪利歐座標 -> X: {}, Y: {}", worldOffset + currentPos.x, currentPos.y);
-    }
-
-    // 💫 2. 星星與變身動畫更新
     if (m_CurrentState == AnimState::RUN) {
         m_RunAnimTimer += deltaTime;
         if (m_RunAnimTimer >= 0.1f) {
@@ -204,6 +218,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
             if (m_CurrentState == AnimState::CHANGING) m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
             else {
                 if (m_CurrentState == AnimState::JUMP) m_Mario->SetAnimation(*m_CurrentJumpImages);
+                else if (m_CurrentState == AnimState::SPRINT) m_Mario->SetAnimation(*m_CurrentSprintImages);
                 else if (m_CurrentState == AnimState::RUN) { std::vector<std::string> sf = { (*m_CurrentRunImages)[m_RunFrameIndex] }; m_Mario->SetAnimation(sf); }
                 else if (m_CurrentState == AnimState::CROUCHING) m_Mario->SetAnimation(*m_CurrentCrouchImages);
                 else m_Mario->SetAnimation(*m_CurrentStandImages);
@@ -214,6 +229,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
             if (m_CurrentState == AnimState::CHANGING) m_Mario->SetAnimation(*m_CurrentChangeImages, 100);
             else {
                 if (m_CurrentState == AnimState::JUMP) m_Mario->SetAnimation(*m_CurrentJumpImages);
+                else if (m_CurrentState == AnimState::SPRINT) m_Mario->SetAnimation(*m_CurrentSprintImages);
                 else if (m_CurrentState == AnimState::RUN) m_Mario->SetAnimation(*m_CurrentRunImages, 100);
                 else if (m_CurrentState == AnimState::CROUCHING) m_Mario->SetAnimation(*m_CurrentCrouchImages);
                 else m_Mario->SetAnimation(*m_CurrentStandImages);
@@ -233,7 +249,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         if (m_InvincibleTimer <= 0.0f) { m_InvincibleTimer = 0.0f; m_IsInvincible = false; if (m_CurrentState != AnimState::DEAD) m_Mario->SetVisible(true); }
     }
 
-    // 🚇 3. 水管傳送邏輯
+    // 🚇 水管動畫播放中
     AnimState nextState = m_CurrentState;
     if (m_CurrentState == AnimState::WARP_DOWN_A) {
         currentPos.y -= 1.5f * (deltaTime * 60.0f);
@@ -252,33 +268,43 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     // ==========================================
-    // 🏃 4. 原版物理：水平移動 (慣性、打滑、極限衝刺)
+    // 🏃 原版物理與輸入偵測
     // ==========================================
     bool btnLeft = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::LEFT);
     bool btnRight = Util::Input::IsKeyPressed(Util::Keycode::D) || Util::Input::IsKeyPressed(Util::Keycode::RIGHT);
     bool btnJump = Util::Input::IsKeyPressed(Util::Keycode::W) || Util::Input::IsKeyPressed(Util::Keycode::UP) || Util::Input::IsKeyPressed(Util::Keycode::SPACE);
-    bool btnDash = Util::Input::IsKeyPressed(Util::Keycode::B); // 🌟 B 鍵衝刺
+    bool btnDash = Util::Input::IsKeyPressed(Util::Keycode::B);
 
     float absoluteX = worldOffset + currentPos.x;
     bool isCrouching = false;
 
-    // 水管偵測與蹲下
+    if (btnDash && !m_WasDashing && m_IsOnGround && std::abs(m_Velocity.x) > 0.5f * NES_SCALE) {
+        m_DashAnimTimer = 0.2f;
+    }
+    m_WasDashing = btnDash;
+    if (m_DashAnimTimer > 0.0f) m_DashAnimTimer -= deltaTime;
+
+    // 🌟 修正核心：偵測到水管後直接 return！絕對不讓後面的物理引擎覆蓋狀態！
     if (Util::Input::IsKeyPressed(Util::Keycode::S) || Util::Input::IsKeyPressed(Util::Keycode::DOWN)) {
-        if (m_IsOnGround && std::abs(absoluteX - 2404.0f) < 15.0f) {
-            nextState = AnimState::WARP_DOWN_A; m_WarpStartY = currentPos.y;
-            m_Velocity.x = 0.0f;
+        if (m_IsOnGround && std::abs(absoluteX - 2404.0f) < 25.0f) {
+            m_CurrentState = AnimState::WARP_DOWN_A;
+            m_WarpStartY = currentPos.y;
+            m_Velocity = { 0.0f, 0.0f };
+            return; // 🛑 提早結束這回合！
         }
-        else if (m_IsBig && m_IsOnGround) {
-            nextState = AnimState::CROUCHING; isCrouching = true;
+        else if (m_IsOnGround) {
+            isCrouching = true;
         }
     }
     else if (absoluteX > 15600.0f && absoluteX < 15648.0f && m_FacingRight && btnRight) {
-        nextState = AnimState::WARP_RIGHT_B; m_WarpStartX = currentPos.x; m_Velocity.x = 0.0f;
+        if (m_IsOnGround && std::abs((currentPos.y - (m_IsBig ? 48.0f : 24.0f)) - (-264.0f)) < 15.0f) {
+            m_CurrentState = AnimState::WARP_RIGHT_B;
+            m_WarpStartX = currentPos.x;
+            m_Velocity = { 0.0f, 0.0f };
+            return; // 🛑 提早結束這回合！
+        }
     }
 
-    if (m_CurrentState == AnimState::WARP_DOWN_A || m_CurrentState == AnimState::WARP_RIGHT_B) return;
-
-    // 物理參數 (NES_SCALE)
     float maxWalkSpeed = 1.56f * NES_SCALE;
     float maxRunSpeed = 2.56f * NES_SCALE;
     float maxSpeed = btnDash ? maxRunSpeed : maxWalkSpeed;
@@ -295,7 +321,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     if (!isCrouching) {
         if (btnRight) {
             m_FacingRight = true;
-            if (m_Velocity.x < 0) { // 正在往左卻按右 ➡️ 煞車打滑
+            if (m_Velocity.x < 0) {
                 m_Velocity.x += skidDecel * deltaTime;
                 m_IsSkidding = m_IsOnGround;
             }
@@ -305,7 +331,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
         else if (btnLeft) {
             m_FacingRight = false;
-            if (m_Velocity.x > 0) { // 正在往右卻按左 ➡️ 煞車打滑
+            if (m_Velocity.x > 0) {
                 m_Velocity.x -= skidDecel * deltaTime;
                 m_IsSkidding = m_IsOnGround;
             }
@@ -313,17 +339,16 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
                 m_Velocity.x -= accel * deltaTime;
             }
         }
-        else if (m_IsOnGround) { // 沒按按鍵，摩擦力減速
+        else if (m_IsOnGround) {
             if (m_Velocity.x > 0) { m_Velocity.x -= friction * deltaTime; if (m_Velocity.x < 0) m_Velocity.x = 0; }
             else if (m_Velocity.x < 0) { m_Velocity.x += friction * deltaTime; if (m_Velocity.x > 0) m_Velocity.x = 0; }
         }
     }
-    else { // 蹲下時強制減速
+    else {
         if (m_Velocity.x > 0) { m_Velocity.x -= friction * deltaTime; if (m_Velocity.x < 0) m_Velocity.x = 0; }
         else if (m_Velocity.x < 0) { m_Velocity.x += friction * deltaTime; if (m_Velocity.x > 0) m_Velocity.x = 0; }
     }
 
-    // 速度限制
     if (!m_IsOnGround) {
         float currentMax = (std::abs(m_Velocity.x) > maxWalkSpeed) ? maxRunSpeed : maxWalkSpeed;
         if (m_Velocity.x > currentMax) m_Velocity.x = currentMax;
@@ -337,14 +362,13 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     // 更新狀態
     if (!m_IsOnGround) nextState = AnimState::JUMP;
     else if (isCrouching) nextState = AnimState::CROUCHING;
+    else if (m_IsSkidding || m_DashAnimTimer > 0.0f) nextState = AnimState::SPRINT;
     else if (std::abs(m_Velocity.x) > 0.05f) nextState = AnimState::RUN;
     else nextState = AnimState::IDLE;
 
-    // 計算水平位移
     glm::vec2 nextPosX = currentPos;
     nextPosX.x += m_Velocity.x * deltaTime;
 
-    // 碰撞偵測用的尺寸
     float bodyHeight = m_IsBig ? (isCrouching ? 72.0f : 96.0f) : 48.0f;
     float halfHeight = bodyHeight / 2.0f;
     if (m_IsOnGround && m_CurrentState != AnimState::CHANGING && nextState != AnimState::CHANGING) {
@@ -357,9 +381,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     float headYOffset = halfHeight - 14.0f;
     float centerOffset = halfHeight;
 
-    // ==========================================
-    // 🧱 5. 水平碰撞偵測 (阻擋前進)
-    // ==========================================
+    // 水平碰撞
     Rect marioBodyBox = { worldOffset + nextPosX.x - 18.0f, currentPos.y + bodyYOffset, 36.0f, bodyHeight };
     bool canMoveX = true;
 
@@ -380,7 +402,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
 
     if (canMoveX) {
         currentPos.x = nextPosX.x;
-        // 地圖邊界捲動與限制
         if (worldOffset > 15000.0f) {
             if (currentPos.x < -360.0f) { currentPos.x = -360.0f; m_Velocity.x = 0; }
             if (currentPos.x > 450.0f) { currentPos.x = 450.0f; m_Velocity.x = 0; }
@@ -391,45 +412,41 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         }
     }
     else {
-        m_Velocity.x = 0.0f; // 撞牆後動能歸零
+        m_Velocity.x = 0.0f;
     }
 
-    // ==========================================
-    // 🦘 6. 原版物理：動態跳躍與重力 (Dynamic Gravity)
-    // ==========================================
+    // 動態跳躍與重力
     if (m_IsOnGround && btnJump && !m_WasJumping && !isCrouching) {
         float absVx = std::abs(m_Velocity.x);
-        float jumpInitVel = 4.00f; // 預設靜止大跳
+        float jumpInitVel = 4.00f;
 
-        if (absVx >= maxRunSpeed - (0.1f * NES_SCALE)) jumpInitVel = 5.00f; // 衝刺飛躍
-        else if (absVx >= maxWalkSpeed) jumpInitVel = 4.12f; // 跑步中跳
+        if (absVx >= maxRunSpeed - (0.1f * NES_SCALE)) jumpInitVel = 5.00f;
+        else if (absVx >= maxWalkSpeed) jumpInitVel = 4.12f;
 
         m_Velocity.y = jumpInitVel * NES_SCALE;
         m_IsOnGround = false;
     }
 
-    float gravity = 0.43f * NES_SCALE * 60.0f; // 預設大重力 (用來產生下墜感)
+    float gravity = 0.43f * NES_SCALE * 60.0f;
 
-    if (btnJump && m_Velocity.y > 0) { // 如果按住跳躍鍵且還在上升，抵抗重力！
+    if (btnJump && m_Velocity.y > 0) {
         float absVx = std::abs(m_Velocity.x);
-        if (absVx > maxWalkSpeed) gravity = 0.15f * NES_SCALE * 60.0f; // 跑很快跳比較遠
-        else gravity = 0.11f * NES_SCALE * 60.0f; // 原地跳比較高
+        if (absVx > maxWalkSpeed) gravity = 0.15f * NES_SCALE * 60.0f;
+        else gravity = 0.11f * NES_SCALE * 60.0f;
     }
 
-    // 處理頭部撞磚塊
     if (m_Velocity.y > 0.0f) {
         Rect marioHead = { worldOffset + currentPos.x - 10.0f, currentPos.y + headYOffset, 20.0f, 14.0f };
         for (auto& block : blocks) {
             if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
             if (CollisionHandler::CheckCollision(marioHead, block->GetHitbox())) {
-                m_Velocity.y = -2.0f * NES_SCALE; // 撞到天花板立刻反彈下墜
+                m_Velocity.y = -2.0f * NES_SCALE;
                 if (m_IsBig) block->Hit(m_IsBig); else block->Hit();
                 break;
             }
         }
     }
 
-    // 套用重力與最大下墜速度
     if (!m_IsOnGround) {
         m_Velocity.y -= gravity * deltaTime;
         float maxFallSpeed = -4.00f * NES_SCALE;
@@ -437,15 +454,13 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     currentPos.y += m_Velocity.y * deltaTime;
-    m_WasJumping = btnJump; // 紀錄按鍵給下一幀用
+    m_WasJumping = btnJump;
 
     if (currentPos.y < -400.0f && m_CurrentState != AnimState::DEAD) {
         Die(); return;
     }
 
-    // ==========================================
-    // 🧱 7. 地面高度偵測
-    // ==========================================
+    // 地面高度偵測
     Rect marioFeet = { worldOffset + currentPos.x - 8.0f, currentPos.y + feetYOffset, 16.0f, 5.0f };
     float groundHeight = collision.GetGroundHeight(marioFeet, -600.0f);
 
@@ -466,12 +481,11 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_IsOnGround = false;
     }
 
-    // ==========================================
-    // 🎨 8. 動畫更新與切換
-    // ==========================================
+    // 動畫更新與切換
     if (m_CurrentState != AnimState::CHANGING) {
         if (m_CurrentState != nextState) {
             if (nextState == AnimState::JUMP) m_Mario->SetAnimation(*m_CurrentJumpImages);
+            else if (nextState == AnimState::SPRINT) m_Mario->SetAnimation(*m_CurrentSprintImages);
             else if (nextState == AnimState::RUN) {
                 m_RunFrameIndex = 0; m_RunAnimTimer = 0.0f;
                 if (m_IsStarMode) { std::vector<std::string> sf = { (*m_CurrentRunImages)[m_RunFrameIndex] }; m_Mario->SetAnimation(sf); }
@@ -486,8 +500,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     m_Mario->SetPosition(currentPos);
-
-    // 🌟 最後保證縮放不受影響！面左則翻轉 X 軸
     m_Mario->m_Transform.scale = { (m_FacingRight ? 3.0f : -3.0f), 3.0f };
 }
 
