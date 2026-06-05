@@ -435,12 +435,24 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         else gravity = 0.11f * NES_SCALE * 60.0f;
     }
 
+    // 處理頭部往上跳的碰撞 (包含磚塊與天花板)
     if (m_Velocity.y > 0.0f) {
         Rect marioHead = { worldOffset + currentPos.x - 10.0f, currentPos.y + headYOffset, 20.0f, 14.0f };
+
+        // 💡 1. 新增：先檢查是否有撞到「靜態天花板下緣 (AddObstacleByGrid 生成的牆壁)」
+        for (const auto& obs : collision.GetObstacles()) {
+            if (obs.width == 0 || obs.height == 0) continue;
+            if (CollisionHandler::CheckCollision(marioHead, obs)) {
+                m_Velocity.y = -2.0f * NES_SCALE; // 撞到天花板下緣，強制失去向上的動能並掉落
+                break;
+            }
+        }
+
+        // 2. 原本的邏輯：檢查是否撞到「可互動磚塊 (blocks)」
         for (auto& block : blocks) {
             if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
             if (CollisionHandler::CheckCollision(marioHead, block->GetHitbox())) {
-                m_Velocity.y = -2.0f * NES_SCALE;
+                m_Velocity.y = -2.0f * NES_SCALE; // 撞到磚塊反彈
                 if (m_IsBig) block->Hit(m_IsBig); else block->Hit();
                 break;
             }
