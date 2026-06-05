@@ -134,11 +134,8 @@ void App::Update() {
             m_LifeStageNum->SetVisible(false);
             m_LifeCountNum->SetVisible(false);
 
-            // ==========================================
-            // 🌟 核心修復點：順序對調！先開後關！
-            // ==========================================
-            SetGameElementsVisible(true); // 先強制讓畫面上所有東西顯示
-            ResetLevel(); // 再交給 ResetLevel() 把 1-2 該隱藏的旗桿跟城堡關掉
+            SetGameElementsVisible(true);
+            ResetLevel();
         }
     }
     // --- 4. 遊戲主迴圈邏輯 ---
@@ -187,11 +184,12 @@ void App::Update() {
             }
 
             std::vector<Rect> allObstacles = m_Collision.GetObstacles();
-            for (const auto& block : m_Blocks) {
+            for (auto& block : m_Blocks) {
                 Rect hit = block->GetHitbox();
                 if (hit.width > 0) allObstacles.push_back(hit);
             }
 
+            // 🌟 將更新磚塊、道具與敵人的工作交給 AppUpdate_Entities.cpp 處理
             UpdateBlocksAndItems(dt, allObstacles);
             UpdateEnemiesAndFireballs(dt, allObstacles, pPos);
 
@@ -225,7 +223,7 @@ void App::Update() {
 }
 
 // ==========================================
-// 重置關卡邏輯保持不動
+// 🔄 重置關卡邏輯
 // ==========================================
 void App::ResetLevel() {
     m_WorldOffset = 0.0f;

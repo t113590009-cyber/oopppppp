@@ -1,6 +1,7 @@
 #include "App.hpp"
 #include "Util/Logger.hpp"
 #include "Coin.hpp"
+#include "MovingBlock.hpp" // 🌟 1. 新增：引入移動平台的標頭檔
 
 void App::Start() {
     LOG_TRACE("Start");
@@ -81,7 +82,7 @@ void App::LoadLevelObjects() {
         auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
-    };
+        };
 
     float ugStartX = 15192.0f + 24.0f;
     float ugBaseY = -96.0f;
@@ -140,7 +141,23 @@ void App::LoadLevelObjects() {
     auto exitPipe = std::make_shared<Block>(Block::Type::PIPE_B, glm::vec2(7492.0f, -216.0f));
     m_Blocks.push_back(exitPipe);
 
-    // 🌟 2. 核心關鍵：在這裡補上這個迴圈，確保「遊戲第一次剛啟動」時，水管和所有方塊會立刻安全地被加進畫面中！
+    // ==========================================
+    // 🌟 2. 測試專區：生成移動平台 (插入在水管與下方的 for 迴圈之間)
+    // ==========================================
+    // 放在 X=-100, Y=-168 (稍微浮空)，左右移動，範圍 150，速度 100
+    auto movingH = std::make_shared<MovingBlock>(
+        GA_RESOURCE_DIR"/Image/Items/road.png", -100.0f, -168.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f
+    );
+    m_Blocks.push_back(movingH);
+
+    // 放在 X=200, Y=-168，上下移動，範圍 150，速度 80
+    auto movingV = std::make_shared<MovingBlock>(
+        GA_RESOURCE_DIR"/Image/Items/road.png", 200.0f, -168.0f, MovingBlock::Axis::VERTICAL, 150.0f, 80.0f
+    );
+    m_Blocks.push_back(movingV);
+
+
+    // 🌟 3. 核心關鍵：在這裡補上這個迴圈，確保「遊戲第一次剛啟動」時，水管、平台和所有方塊會立刻安全地被加進畫面中！
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) {
             block->GetCharacter()->SetVisible(false); // 剛開局在主選單時先隱形，點 Start 後才會秀出來
@@ -211,14 +228,14 @@ void App::LoadLevel2Objects() {
         block->SetItemType(item);
         m_Blocks.push_back(block);
         m_Root.AddChild(block->GetCharacter());
-    };
+        };
 
     // 工具 B：整排磚塊鋪設器
     auto SpawnBricksByGrid = [&](int imgNum, int startCol, int endCol, int row) {
         for (int col = startCol; col <= endCol; ++col) {
             AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
         }
-    };
+        };
 
     // 工具 C：實體/空氣牆碰撞箱鋪設器
     // 💡 邏輯已直接修改：將大範圍「包起來」，自動切割並鋪滿 48x48 的標準碰撞方塊，徹底根除大面積穿模！
@@ -240,53 +257,53 @@ void App::LoadLevel2Objects() {
                 m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
             }
         }
-    };
+        };
 
     // 🧱 【純格子地圖配置區】 依照要求：數值完全不更動！
 
     AddObstacleByGrid(1, 0, 1, 15, 0, 1);
-    AddObstacleByGrid(2,2,2,5,2,2);
-    AddObstacleByGrid(2,3,2,4,0,1);
-    AddObstacleByGrid(2,8,2,15,5,5);
-    AddObstacleByGrid(2,9,2,14,0,4);
-    AddObstacleByGrid(2,10,2,14,9,9);
-    AddObstacleByGrid(2,11,2,13,6,8);
-    AddObstacleByGrid(3,0,3,2,2,2);
-    AddObstacleByGrid(3,1,3,1,0,1);
-    AddObstacleByGrid(3,3,3,7,6,6);
-    AddObstacleByGrid(3,4,3,6,0,5);
-    AddObstacleByGrid(3,8,3,14,10,10);
-    AddObstacleByGrid(3,9,3,13,0,9);
-    AddObstacleByGrid(4,2,4,5,1,1);
-    AddObstacleByGrid(4,3,4,4,0,0);
-    AddObstacleByGrid(4,12,4,15,9,9);
-    AddObstacleByGrid(4,13,4,14,2,8);
-    AddObstacleByGrid(4,11,4,15,1,1);
-    AddObstacleByGrid(4,12,4,14,0,0);
-    AddObstacleByGrid(5,1,5,5,1,1);
-    AddObstacleByGrid(5,2,5,4,0,0);
-    AddObstacleByGrid(5,6,5,8,5,5);
-    AddObstacleByGrid(5,7,5,7,0,4);
-    AddObstacleByGrid(5,12,5,15,8,8);
-    AddObstacleByGrid(6,0,6,1,8,8);
-    AddObstacleByGrid(5,13,5,15,0,7);
-    AddObstacleByGrid(6,0,6,0,0,7);
-    AddObstacleByGrid(7,2,7,5,3,3);
-    AddObstacleByGrid(7,3,7,4,0,2);
-    AddObstacleByGrid(7,8,7,15,7,7);
-    AddObstacleByGrid(7,9,7,14,0,6);
-    AddObstacleByGrid(8,1,8,3,1,1);
-    AddObstacleByGrid(8,2,8,2,0,0);
-    AddObstacleByGrid(8,4,8,7,5,5);
-    AddObstacleByGrid(8,5,8,6,0,4);
-    AddObstacleByGrid(8,10,8,13,5,5);
-    AddObstacleByGrid(8,11,8,12,0,4);
-    AddObstacleByGrid(9,1,9,15,0,1);
-    AddObstacleByGrid(9,10,9,15,2,5);
-    AddObstacleByGrid(9,12,9,15,6,7);
-    AddObstacleByGrid(9,14,9,15,8,9);
-    AddObstacleByGrid(10,0,10,15,0,1);
-    AddObstacleByGrid(11,0,11,3,0,1);
+    AddObstacleByGrid(2, 2, 2, 5, 2, 2);
+    AddObstacleByGrid(2, 3, 2, 4, 0, 1);
+    AddObstacleByGrid(2, 8, 2, 15, 5, 5);
+    AddObstacleByGrid(2, 9, 2, 14, 0, 4);
+    AddObstacleByGrid(2, 10, 2, 14, 9, 9);
+    AddObstacleByGrid(2, 11, 2, 13, 6, 8);
+    AddObstacleByGrid(3, 0, 3, 2, 2, 2);
+    AddObstacleByGrid(3, 1, 3, 1, 0, 1);
+    AddObstacleByGrid(3, 3, 3, 7, 6, 6);
+    AddObstacleByGrid(3, 4, 3, 6, 0, 5);
+    AddObstacleByGrid(3, 8, 3, 14, 10, 10);
+    AddObstacleByGrid(3, 9, 3, 13, 0, 9);
+    AddObstacleByGrid(4, 2, 4, 5, 1, 1);
+    AddObstacleByGrid(4, 3, 4, 4, 0, 0);
+    AddObstacleByGrid(4, 12, 4, 15, 9, 9);
+    AddObstacleByGrid(4, 13, 4, 14, 2, 8);
+    AddObstacleByGrid(4, 11, 4, 15, 1, 1);
+    AddObstacleByGrid(4, 12, 4, 14, 0, 0);
+    AddObstacleByGrid(5, 1, 5, 5, 1, 1);
+    AddObstacleByGrid(5, 2, 5, 4, 0, 0);
+    AddObstacleByGrid(5, 6, 5, 8, 5, 5);
+    AddObstacleByGrid(5, 7, 5, 7, 0, 4);
+    AddObstacleByGrid(5, 12, 5, 15, 8, 8);
+    AddObstacleByGrid(6, 0, 6, 1, 8, 8);
+    AddObstacleByGrid(5, 13, 5, 15, 0, 7);
+    AddObstacleByGrid(6, 0, 6, 0, 0, 7);
+    AddObstacleByGrid(7, 2, 7, 5, 3, 3);
+    AddObstacleByGrid(7, 3, 7, 4, 0, 2);
+    AddObstacleByGrid(7, 8, 7, 15, 7, 7);
+    AddObstacleByGrid(7, 9, 7, 14, 0, 6);
+    AddObstacleByGrid(8, 1, 8, 3, 1, 1);
+    AddObstacleByGrid(8, 2, 8, 2, 0, 0);
+    AddObstacleByGrid(8, 4, 8, 7, 5, 5);
+    AddObstacleByGrid(8, 5, 8, 6, 0, 4);
+    AddObstacleByGrid(8, 10, 8, 13, 5, 5);
+    AddObstacleByGrid(8, 11, 8, 12, 0, 4);
+    AddObstacleByGrid(9, 1, 9, 15, 0, 1);
+    AddObstacleByGrid(9, 10, 9, 15, 2, 5);
+    AddObstacleByGrid(9, 12, 9, 15, 6, 7);
+    AddObstacleByGrid(9, 14, 9, 15, 8, 9);
+    AddObstacleByGrid(10, 0, 10, 15, 0, 1);
+    AddObstacleByGrid(11, 0, 11, 3, 0, 1);
 
     // 📍 2. 問號箱、磚塊箱
     // SpawnBricksByGrid(2, 3, 12, 8);

@@ -3,6 +3,7 @@
 #include "Util/Keycode.hpp"
 #include "Util/Logger.hpp"
 #include <cmath>
+#include "MovingBlock.hpp" // 🌟 記得加這行！
 
 Player::Player() {
     // ==========================================
@@ -464,11 +465,24 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     Rect marioFeet = { worldOffset + currentPos.x - 8.0f, currentPos.y + feetYOffset, 16.0f, 5.0f };
     float groundHeight = collision.GetGroundHeight(marioFeet, -600.0f);
 
+    float platformVelocityX = 0.0f; // 🌟 用來儲存腳下移動平台的水平速度
+
     for (auto& block : blocks) {
         if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
         if (CollisionHandler::CheckCollision(marioFeet, block->GetHitbox())) {
             float blockTop = block->GetHitbox().y + block->GetHitbox().height;
-            if (blockTop > groundHeight) groundHeight = blockTop;
+            if (blockTop > groundHeight) {
+                groundHeight = blockTop;
+
+                // 🌟 檢查踩到的這塊磚是不是移動平台？
+                auto movingBlock = std::dynamic_pointer_cast<MovingBlock>(block);
+                if (movingBlock) {
+                    platformVelocityX = movingBlock->GetVelocityX();
+                }
+                else {
+                    platformVelocityX = 0.0f; // 踩到普通磚塊就沒有額外速度
+                }
+            }
         }
     }
 
@@ -476,6 +490,11 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         currentPos.y = groundHeight + centerOffset;
         m_Velocity.y = 0.0f;
         m_IsOnGround = true;
+
+        // 🌟 核心：如果平台正在左右移動，強迫瑪利歐跟著它一起平移！
+        if (platformVelocityX != 0.0f) {
+            currentPos.x += platformVelocityX * deltaTime;
+        }
     }
     else {
         m_IsOnGround = false;
