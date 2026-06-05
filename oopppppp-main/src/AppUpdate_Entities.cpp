@@ -3,6 +3,7 @@
 #include "Star.hpp"
 #include "Coin.hpp"
 #include "FireFlower.hpp"
+#include "MovingBlock.hpp" // 🌟 1. 加入移動平台的標頭檔！
 
 // ==========================================
 // 1. 更新磚塊與道具 (包含從磚塊蹦出來的邏輯)
@@ -12,7 +13,9 @@ void App::UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles) 
 
     // 更新磚塊
     for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
+        // 🌟 核心魔法：因為多型 (Polymorphism)，這行會自動幫你更新普通磚塊或移動平台！
         (*it)->Update(dt, m_WorldOffset);
+
         if ((*it)->HasJustSpawnedItem()) {
             Block::ItemType type = (*it)->GetItemType();
             if (type == Block::ItemType::MUSHROOM) {

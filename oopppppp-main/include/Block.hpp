@@ -9,6 +9,11 @@
 
 class Block {
 public:
+    // ==========================================
+    // 🌟 關鍵修復：加入虛擬解構子，讓 C++ 支援動態轉型 (dynamic_cast)
+    // ==========================================
+    virtual ~Block() = default;
+
     // 🌟 1. 擴充方塊種類：新增 脆磚(FRAGILE) 與 道具磚(ITEM)
     enum class Type { QUESTION, BRICK, BRICK_FRAGILE, BRICK_ITEM, PIPE_A, PIPE_B };
 
@@ -19,18 +24,21 @@ public:
     enum class ItemType {
         NONE,       // 空的 (只會彈一下或碎掉)
         MUSHROOM,   // 裝蘑菇
-        STAR,        // 裝無敵星星
-        COIN        //裝金幣
+        STAR,       // 裝無敵星星
+        COIN        // 裝金幣
     };
 
     Block(Type type, glm::vec2 startPos, int interval = 150);
 
-    void Update(float deltaTime, float worldOffset);
+    // ==========================================
+    // 🌟 關鍵修復：加上 virtual，讓子類別 (MovingBlock) 可以擁有自己的專屬行為！
+    // ==========================================
+    virtual void Update(float deltaTime, float worldOffset);
 
-    // 🌟 升級：接收 bool，讓大隻瑪利歐可以碎磚 (合併自第二份)
-    void Hit(bool isBigMario = false);
+    // 🌟 升級：接收 bool，讓大隻瑪利歐可以碎磚
+    virtual void Hit(bool isBigMario = false);
 
-    Rect GetHitbox() const;
+    virtual Rect GetHitbox() const;
 
     // 🌟 回傳型態為 AnimatedCharacter
     std::shared_ptr<AnimatedCharacter> GetCharacter() const { return m_Visual; }
@@ -64,7 +72,10 @@ public:
         return false;
     }
 
-private:
+    // ==========================================
+    // 🌟 關鍵修改：將 private 改為 protected，讓 MovingBlock 可以修改座標！
+    // ==========================================
+protected:
     Type m_Type;
     State m_State;
 
