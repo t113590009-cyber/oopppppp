@@ -297,12 +297,12 @@ void App::LoadLevel3Objects() {
         m_Map->SetVisible(true);
     }
 
-    // ⚙️ 【純格子對齊工具組】
+    // ⚙️ 【純格子對齊工具組】（已改為 float，支援帶有 .5f 的半格定位）
 
-    auto AddBlockByGrid = [this](Block::Type type, int imgNum, int col, int row, Block::ItemType item = Block::ItemType::NONE) {
+    auto AddBlockByGrid = [this](Block::Type type, int imgNum, float col, float row, Block::ItemType item = Block::ItemType::NONE) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
-        float worldX = leftEdge + (static_cast<float>(col) * 48.0f) + 24.0f;
-        float worldY = -360.0f + (static_cast<float>(row) * 48.0f);
+        float worldX = leftEdge + (col * 48.0f) + 24.0f;
+        float worldY = -360.0f + (row * 48.0f);
 
         auto block = std::make_shared<Block>(type, glm::vec2{ worldX, worldY });
         block->SetItemType(item);
@@ -310,23 +310,23 @@ void App::LoadLevel3Objects() {
         m_Root.AddChild(block->GetCharacter());
     };
 
-    auto SpawnBricksByGrid = [&](int imgNum, int startCol, int endCol, int row) {
-        for (int col = startCol; col <= endCol; ++col) {
+    auto SpawnBricksByGrid = [&](int imgNum, float startCol, float endCol, float row) {
+        for (float col = startCol; col <= endCol; col += 1.0f) {
             AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
         }
     };
 
-    // 🏆 終極版空氣牆工具 (自動切割成 48x48 完美方塊)
-    auto AddObstacleByGrid = [this](int startImg, int startCol, int endImg, int endCol, int startRow, int endRow) {
-        float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (static_cast<float>(startCol) * 48.0f);
-        float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (static_cast<float>(endCol) * 48.0f) + 48.0f;
+    // 🏆 終極版空氣牆工具 (自動切割成 48x48 完美方塊，已改為 float 支援半格)
+    auto AddObstacleByGrid = [this](int startImg, float startCol, int endImg, float endCol, float startRow, float endRow) {
+        float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (startCol * 48.0f);
+        float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (endCol * 48.0f) + 48.0f;
 
         int colsCount = std::round((totalEndX - totalStartX) / 48.0f);
 
         for (int i = 0; i < colsCount; ++i) {
             float currentX = totalStartX + (static_cast<float>(i) * 48.0f);
-            for (int r = startRow; r <= endRow; ++r) {
-                float currentY = -360.0f + static_cast<float>(r) * 48.0f;
+            for (float r = startRow; r <= endRow; r += 1.0f) {
+                float currentY = -360.0f + r * 48.0f;
                 m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
             }
         }
@@ -338,8 +338,41 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(1,3,1,3,0,6);
     AddObstacleByGrid(1,4,1,4,0,5);
     AddObstacleByGrid(1,5,1,12,0,4);
+    AddObstacleByGrid(1,15,1,15,0,4);
     AddObstacleByGrid(1,0,1,15,10,12);
-
+    AddObstacleByGrid(2,0,2,9,0,4);
+    AddObstacleByGrid(2,13,2,15,0,4);
+    AddObstacleByGrid(2,0,2,7,10,12);
+    AddObstacleByGrid(2,7,2,7,9,9);
+    AddObstacleByGrid(2,8,2,15,12,12);
+    AddObstacleByGrid(3,3,3,15,0,5);
+    AddObstacleByGrid(3,0,3,4,12,12);
+    AddObstacleByGrid(3,5,3,15,9,12);
+    AddObstacleByGrid(4,0,4,15,0,5);
+    AddObstacleByGrid(4,0,4,15,9,12);
+    AddObstacleByGrid(5,0,5,7,0,5);
+    AddObstacleByGrid(5,8,5,15,0,4);
+    AddObstacleByGrid(5,0,5,7,9,12);
+    AddObstacleByGrid(5,8,5,15,12,12);
+    AddObstacleByGrid(6,0,6,15,0,4);
+    AddObstacleByGrid(6,0,6,15,12,12);
+    AddObstacleByGrid(6,0,6,0,11,11);
+    AddObstacleByGrid(6,8,6,8,11,11);
+    AddObstacleByGrid(7,0,7,7,0,4);
+    AddObstacleByGrid(7,8,7,15,0,1);
+    AddObstacleByGrid(7,0,7,15,12,12);
+    AddObstacleByGrid(7,1,7,7,10,11);
+    AddObstacleByGrid(8,0,8,15,0,1);
+    AddObstacleByGrid(8,4,8,7,2,4);
+    AddObstacleByGrid(8,11,8,15,2,4);
+    AddObstacleByGrid(8,0,8,15,12,12);
+    AddObstacleByGrid(8,11,8,15,10,11);
+    AddObstacleByGrid(9,0,9,11,4,4);
+    AddObstacleByGrid(9,12,9,15,0,5);
+    AddObstacleByGrid(9,0,9,15,12,12);
+    AddObstacleByGrid(9,14,9,15,9,11);
+    AddObstacleByGrid(10,0,10,15,0,1);
+    AddObstacleByGrid(10,0,10,15,12,12);
 
     //方塊、問號方塊、金幣
     // 範例：在第 2 張圖的第 5 格，高度第 5 層放一個香菇問號箱
@@ -350,7 +383,6 @@ void App::LoadLevel3Objects() {
     m_Player->ResetStatus();                  // 重置瑪利歐的狀態（避免他帶著死亡狀態復活）
     m_Player->GetCharacter()->SetVisible(true); // 確保他沒有隱形
 }
-
 // 🔄 新增：萬能的關卡切換器 (直接貼在 LoadLevel3Objects 下方)
 void App::SwitchLevel(int nextLevel) {
     // 1. 🧹 徹底清空上一關的殘留物
