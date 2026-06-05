@@ -15,7 +15,7 @@
 #include "Item.hpp"
 #include "Mushroom.hpp"
 #include "ScoreEffect.hpp"
-#include "AnimatedCharacter.hpp" 
+#include "AnimatedCharacter.hpp"
 
 #include <memory>
 #include <vector>
@@ -101,6 +101,7 @@ private:
 
     void LoadLevel2Objects();
     void LoadLevel3Objects();
+    void SwitchLevel(int nextLevel);
 
     void AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item = Block::ItemType::NONE);
 

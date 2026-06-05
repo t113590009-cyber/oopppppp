@@ -310,19 +310,82 @@ void App::LoadLevel2Objects() {
 }
 
 void App::LoadLevel3Objects() {
-    // ---------------------------------------------------------
-    // 1. 鋪設 1-3 的基本地平線地板 (實體碰撞箱)
-    // ---------------------------------------------------------
-    // ✨ 完美修正：直接使用你最穩定的 AddObstacle 機制！
-    // 從 X = -450.0f 開始，鋪設一條涵蓋 10 張圖片總寬度(7680.0f)的超長實體地板
-    // 這樣瑪利歐一進來就能完美踩在 1-3 的地表上奔跑，且絕對不卡控不破圖！
-    m_Collision.AddObstacle(-450.0f, -360.0f, 7680.0f, 96.0f);
+    if (m_Map) {
+        m_Map->SetVisible(true);
+    }
 
-    // ---------------------------------------------------------
-    // 2. 鋪設 1-3 特有的空中方塊、問號方塊、金幣
-    // ---------------------------------------------------------
-    // 範例（可以自己依需求追加網格 X 座標與 Y 座標）：
-    // AddBlock(Block::Type::QUESTION, 15, -72.0f, Block::ItemType::MUSHROOM);
+    // ⚙️ 【純格子對齊工具組】
+
+    auto AddBlockByGrid = [this](Block::Type type, int imgNum, int col, int row, Block::ItemType item = Block::ItemType::NONE) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (static_cast<float>(col) * 48.0f) + 24.0f;
+        float worldY = -360.0f + (static_cast<float>(row) * 48.0f);
+
+        auto block = std::make_shared<Block>(type, glm::vec2{ worldX, worldY });
+        block->SetItemType(item);
+        m_Blocks.push_back(block);
+        m_Root.AddChild(block->GetCharacter());
+    };
+
+    auto SpawnBricksByGrid = [&](int imgNum, int startCol, int endCol, int row) {
+        for (int col = startCol; col <= endCol; ++col) {
+            AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
+        }
+    };
+
+    // 🏆 終極版空氣牆工具 (自動切割成 48x48 完美方塊)
+    auto AddObstacleByGrid = [this](int startImg, int startCol, int endImg, int endCol, int startRow, int endRow) {
+        float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (static_cast<float>(startCol) * 48.0f);
+        float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (static_cast<float>(endCol) * 48.0f) + 48.0f;
+
+        int colsCount = std::round((totalEndX - totalStartX) / 48.0f);
+
+        for (int i = 0; i < colsCount; ++i) {
+            float currentX = totalStartX + (static_cast<float>(i) * 48.0f);
+            for (int r = startRow; r <= endRow; ++r) {
+                float currentY = -360.0f + static_cast<float>(r) * 48.0f;
+                m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
+            }
+        }
+    };
+
+    // 鋪設 1-3 的基本地平線地板
+    // 從第 1 張圖第 0 格，一路鋪到第 10 張圖的最右邊(第 15 格)，高度為 0 到 1 層 (兩格厚度 = 96)
+    AddObstacleByGrid(1,0,1,2,0,7);
+    AddObstacleByGrid(1,3,1,3,0,6);
+    AddObstacleByGrid(1,4,1,4,0,5);
+    AddObstacleByGrid(1,5,1,12,0,4);
+    AddObstacleByGrid(1,0,1,15,10,12);
+
+
+    //方塊、問號方塊、金幣
+    // 範例：在第 2 張圖的第 5 格，高度第 5 層放一個香菇問號箱
+    // AddBlockByGrid(Block::Type::QUESTION, 2, 5, 5, Block::ItemType::MUSHROOM);
+
+    // 這是切換關卡時，負責重置瑪利歐的程式碼
+    m_Player->SetWorldPosition(-400.0f, 80.0f); // 💡 關鍵：把 Y 設成 150.0f，確保他在超高磚塊的上方出生！
+    m_Player->ResetStatus();                  // 重置瑪利歐的狀態（避免他帶著死亡狀態復活）
+    m_Player->GetCharacter()->SetVisible(true); // 確保他沒有隱形
+}
+
+// 🔄 新增：萬能的關卡切換器 (直接貼在 LoadLevel3Objects 下方)
+void App::SwitchLevel(int nextLevel) {
+    // 1. 🧹 徹底清空上一關的殘留物
+    for (auto& block : m_Blocks) {
+        m_Root.RemoveChild(block->GetCharacter());
+    }
+    m_Blocks.clear();
+    m_Collision.Clear(); // 清除上一關所有的隱形牆
+
+    // 2. 🗺️ 載入新關卡
+    if (nextLevel == 2) {
+        LoadLevel2Objects();
+    }
+    else if (nextLevel == 3) {
+        LoadLevel3Objects();
+    }
+
+    // (註：如果有重置瑪利歐位置與鏡頭的需求，請在這邊加上你專案對應的變數，例如 m_Player->SetPosition(...) 等等)
 }
 
 void App::AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item) {
