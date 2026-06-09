@@ -141,22 +141,6 @@ void App::LoadLevelObjects() {
     auto exitPipe = std::make_shared<Block>(Block::Type::PIPE_B, glm::vec2(7492.0f, -216.0f));
     m_Blocks.push_back(exitPipe);
 
-    // ==========================================
-    // 🌟 2. 測試專區：生成移動平台 (插入在水管與下方的 for 迴圈之間)
-    // ==========================================
-    // 放在 X=-100, Y=-168 (稍微浮空)，左右移動，範圍 150，速度 100
-    auto movingH = std::make_shared<MovingBlock>(
-        GA_RESOURCE_DIR"/Image/Items/road.png", -100.0f, -168.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f
-    );
-    m_Blocks.push_back(movingH);
-
-    // 放在 X=200, Y=-168，上下移動，範圍 150，速度 80
-    auto movingV = std::make_shared<MovingBlock>(
-        GA_RESOURCE_DIR"/Image/Items/road.png", 200.0f, -168.0f, MovingBlock::Axis::VERTICAL, 150.0f, 80.0f
-    );
-    m_Blocks.push_back(movingV);
-
-
     // 🌟 3. 核心關鍵：在這裡補上這個迴圈，確保「遊戲第一次剛啟動」時，水管、平台和所有方塊會立刻安全地被加進畫面中！
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) {
@@ -238,25 +222,31 @@ void App::LoadLevel2Objects() {
         };
 
     // 工具 C：實體/空氣牆碰撞箱鋪設器
-    // 💡 邏輯已直接修改：將大範圍「包起來」，自動切割並鋪滿 48x48 的標準碰撞方塊，徹底根除大面積穿模！
     auto AddObstacleByGrid = [this](int startImg, int startCol, int endImg, int endCol, int startRow, int endRow) {
-        // 先算出整個大範圍的絕對 X 座標起點與終點
         float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (static_cast<float>(startCol) * 48.0f);
         float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (static_cast<float>(endCol) * 48.0f) + 48.0f;
 
-        // 計算這段範圍總共包含了幾個寬度 (Column)
         int colsCount = std::round((totalEndX - totalStartX) / 48.0f);
 
-        // 用雙重迴圈將這個範圍徹底填滿標準的 48x48 隱形方塊
         for (int i = 0; i < colsCount; ++i) {
             float currentX = totalStartX + (static_cast<float>(i) * 48.0f);
 
             for (int r = startRow; r <= endRow; ++r) {
                 float currentY = -360.0f + static_cast<float>(r) * 48.0f;
-                // 每次只餵給物理引擎最標準的 48x48 尺寸，保證判定絕對精準
                 m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
             }
         }
+        };
+
+    // 🌟 【新增工具 D：移動平台專用格子工具】(支援 float，方便精細微調半格)
+    auto AddMovingBlockByGrid = [this](const std::string& imgPath, int imgNum, float col, float row, MovingBlock::Axis axis, float range, float speed) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (col * 48.0f) + 24.0f;
+        float worldY = -360.0f + (row * 48.0f);
+
+        auto movingBlock = std::make_shared<MovingBlock>(imgPath, worldX, worldY, axis, range, speed);
+        m_Blocks.push_back(movingBlock);
+        m_Root.AddChild(movingBlock->GetCharacter());
         };
 
     // 🧱 【純格子地圖配置區】 依照要求：數值完全不更動！
@@ -304,9 +294,35 @@ void App::LoadLevel2Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 8, 9);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(11, 0, 11, 3, 0, 1);
+    AddObstacleByGrid(1,0,5,15,0,1);//測試作弊地圖
+    AddObstacleByGrid(2,0,5,15,0,4);//測試作弊地圖
+    AddObstacleByGrid(6,0,7,15,0,3);//測試作弊地圖
+    AddObstacleByGrid(8,0,8,15,0,3);//測試作弊地圖
+
+
+
 
     // 📍 2. 問號箱、磚塊箱
     // SpawnBricksByGrid(2, 3, 12, 8);
+
+    // 🎯 3. 移動平台動態配置專區（使用你的專屬 road.png 平台圖片）
+    std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
+
+    // ✨ 【平台一】：在第 4 張圖的中間，上下垂直移動的平台
+    // 參數：第 4 張圖、第 8 格(中央)、高度第 3 層、垂直軸向、移動範圍 150、速度 80
+    AddMovingBlockByGrid(platformImg, 4, 8.0f, 5.0f, MovingBlock::Axis::VERTICAL, 155.0f, 100.0f);
+
+
+    // ✨ 【平台二（低平台）】：在第 6 張圖與第 7 張圖銜接處
+    // 靠近第 6 張圖的最右側邊緣（第 14 格），高度第 5 層，左右水平移動
+    AddMovingBlockByGrid(platformImg, 6, 6.0f, 5.0f, MovingBlock::Axis::HORIZONTAL, 160.0f, 110.0f);
+
+    // ✨ 【平台三（高平台）】：在第 6 張圖與第 7 張圖銜接處
+    // 靠近第 7 張圖的最左側邊緣（第 1 格），高度第 6 層，左右水平移動，與低平台形成完美的連續跳躍高低差
+    AddMovingBlockByGrid(platformImg, 6, 12.0f, 6.f, MovingBlock::Axis::HORIZONTAL, 160.0f, 130.0f);
+
+    // 預設參數：第 9 張圖、第 5 格、高度第 5 層、左右水平移動、移動範圍 150、速度 100
+    AddMovingBlockByGrid(platformImg, 9, 4.0f, 7.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 110.0f);
 }
 
 void App::LoadLevel3Objects() {
@@ -349,6 +365,17 @@ void App::LoadLevel3Objects() {
         }
     };
 
+    // 🌟 【新增工具 D：移動平台專用格子工具】(同樣支援 float 半格定位)
+    auto AddMovingBlockByGrid = [this](const std::string& imgPath, int imgNum, float col, float row, MovingBlock::Axis axis, float range, float speed) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (col * 48.0f) + 24.0f;
+        float worldY = -360.0f + (row * 48.0f);
+
+        auto movingBlock = std::make_shared<MovingBlock>(imgPath, worldX, worldY, axis, range, speed);
+        m_Blocks.push_back(movingBlock);
+        m_Root.AddChild(movingBlock->GetCharacter());
+    };
+
     // 鋪設 1-3 的基本地平線地板
     // 從第 1 張圖第 0 格，一路鋪到第 10 張圖的最右邊(第 15 格)，高度為 0 到 1 層 (兩格厚度 = 96)
     AddObstacleByGrid(1,0,1,2,0,7);
@@ -384,8 +411,8 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(8,11,8,15,2,4);
     AddObstacleByGrid(8,0,8,15,12,12);
     AddObstacleByGrid(8,11,8,15,10,11);
-    AddObstacleByGrid(9,0,9,11,4,4);
-    AddObstacleByGrid(9,12,9,15,0,5);
+    AddObstacleByGrid(9,0,9,12,4,4);
+    AddObstacleByGrid(9,13,9,15,0,5);
     AddObstacleByGrid(9,0,9,15,12,12);
     AddObstacleByGrid(9,14,9,15,9,11);
     AddObstacleByGrid(10,0,10,15,0,1);
@@ -394,6 +421,14 @@ void App::LoadLevel3Objects() {
     //方塊、問號方塊、金幣
     // 範例：在第 2 張圖的第 5 格，高度第 5 層放一個香菇問號箱
     // AddBlockByGrid(Block::Type::QUESTION, 2, 5, 5, Block::ItemType::MUSHROOM);
+
+    // 🎯 3. 移動平台配置區（使用你的專屬 road.png 平台圖片）
+    std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
+
+    // 預設參數：第 9 張圖、第 5.0 格、高度第 6.0 層（剛好在 row 4 地板上方）、左右水平移動、移動範圍 150、速度 100
+    // (你可以根據需求自由修改下方 5.0f, 6.0f 的格數位置，甚至改為 5.5f 等半格定位！)
+    AddMovingBlockByGrid(platformImg, 9, 6.0f, 9.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f);
+
 
     // 這是切換關卡時，負責重置瑪利歐的程式碼
     m_Player->SetWorldPosition(-400.0f, 80.0f); // 💡 關鍵：把 Y 設成 150.0f，確保他在超高磚塊的上方出生！
