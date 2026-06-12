@@ -18,9 +18,7 @@ void App::SetGameElementsVisible(bool visible) {
 void App::Update() {
     float dt = Util::Time::GetDeltaTime();
 
-    // ==========================================
     // 🌟 懶人載入法：遊戲一開先把 hp.png 與 fail.png 準備好
-    // ==========================================
     if (!m_LifeBg) {
         m_LifeBg = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/hp.png");
         m_LifeBg->SetZIndex(98);
@@ -61,6 +59,12 @@ void App::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) { m_CurrentLevel = 2; ResetLevel(); }
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_1)) { m_CurrentLevel = 1; ResetLevel(); }
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) { m_CurrentLevel = 3; ResetLevel(); }
+
+    // 🌟 將原本的 Keycode::O 改成 Keycode::NUM_0
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_0)) {
+        m_CheatEnabled = !m_CheatEnabled; // 切換開關
+        ResetLevel(true);                 // 🌟 傳入 true 保持原地
+    }
 
     // --- 1. 選單邏輯 ---
     if (m_Menu->GetVisibility()) {
@@ -222,16 +226,16 @@ void App::Update() {
     m_Root.Update();
 }
 
-// ==========================================
 // 🔄 重置關卡邏輯
-// ==========================================
-void App::ResetLevel() {
-    m_WorldOffset = 0.0f;
+void App::ResetLevel(bool keepPosition) {
+    if (!keepPosition) {
+        m_WorldOffset = 0.0f; // 🌟 只有一般換關/死亡時，畫面才歸零
+    }
     m_GameTime = 400.0f;
 
     if (m_Map) {
         m_Map->ShowLevel(m_CurrentLevel);
-        m_Map->Update(0.0f);
+        m_Map->Update(m_WorldOffset); // 🌟 帶入當前的 m_WorldOffset，確保地圖對齊現在的畫面
     }
 
     for (auto& goomba : m_Goombas) { if (goomba) m_Root.RemoveChild(goomba->GetDrawable()); }
@@ -267,7 +271,9 @@ void App::ResetLevel() {
         if (m_Player) {
             m_Player->ResetStatus();
             if (m_Player->GetCharacter()) {
-                m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
+                if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
+                    m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
+                }
                 m_Player->GetCharacter()->SetVisible(true);
             }
         }
@@ -286,7 +292,9 @@ void App::ResetLevel() {
     else if (m_CurrentLevel == 2) {
         if (m_Player) {
             m_Player->ResetStatus();
-            m_Player->SetWorldPosition(-450.0f, -264.0f);
+            if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
+                m_Player->SetWorldPosition(-450.0f, -264.0f);
+            }
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
@@ -299,7 +307,9 @@ void App::ResetLevel() {
     else if (m_CurrentLevel == 3) {
         if (m_Player) {
             m_Player->ResetStatus();
-            m_Player->SetWorldPosition(-450.0f, -264.0f);
+            if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
+                m_Player->SetWorldPosition(-450.0f, -264.0f);
+            }
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
