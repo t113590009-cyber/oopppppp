@@ -51,16 +51,13 @@ private:
     float m_GameTime = 400.0f;
     float m_DeathTimer = 0.0f;
 
-    // ==========================================
-    // 🌟 生命值黑畫面過場系統 
-    // ==========================================
+    // 🌟 生命值黑畫面過場系統
     bool m_ShowLifeScreen = false;
     float m_LifeScreenTimer = 0.0f;
     std::shared_ptr<Character> m_LifeBg;
     std::shared_ptr<Character> m_LifeWorldNum;
     std::shared_ptr<Character> m_LifeStageNum;
     std::shared_ptr<Character> m_LifeCountNum;
-    // ==========================================
 
     int m_PendingFireworks = 0;
     float m_FireworkTimer = 0.0f;
@@ -68,7 +65,7 @@ private:
     std::vector<float> m_FireworkWorldX;
     float m_ClearGroundY = -264.0f;
 
-    void ResetLevel();
+    void ResetLevel(bool keepPosition = false); // 🌟 新增預設參數，預設為 false (回到原點)
     void LoadLevelObjects();
     std::shared_ptr<TopUI> m_TopUI;
 
@@ -103,6 +100,7 @@ private:
     int m_CurrentLevel = 1;
     bool m_IsExitingCastle = false;
 
+    bool m_CheatEnabled = false;
     void LoadLevel2Objects();
     void LoadLevel3Objects();
     void SwitchLevel(int nextLevel);

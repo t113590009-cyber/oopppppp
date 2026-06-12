@@ -294,10 +294,12 @@ void App::LoadLevel2Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 8, 9);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(11, 0, 11, 3, 0, 1);
-    AddObstacleByGrid(1,0,5,15,0,1);//測試作弊地圖
-    AddObstacleByGrid(2,0,5,15,0,4);//測試作弊地圖
-    AddObstacleByGrid(6,0,7,15,0,3);//測試作弊地圖
-    AddObstacleByGrid(8,0,8,15,0,3);//測試作弊地圖
+    if (m_CheatEnabled) {
+        AddObstacleByGrid(1,0,5,15,0,1);//測試作弊地圖
+        AddObstacleByGrid(2,0,5,15,0,4);//測試作弊地圖
+        AddObstacleByGrid(6,0,7,15,0,3);//測試作弊地圖
+        AddObstacleByGrid(8,0,8,15,0,3);//測試作弊地圖
+    }
 
 
 
