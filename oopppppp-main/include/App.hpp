@@ -16,6 +16,8 @@
 #include "Mushroom.hpp"
 #include "ScoreEffect.hpp"
 #include "AnimatedCharacter.hpp"
+#include "Bowser.hpp"
+#include "BowserFire.hpp"
 
 #include <memory>
 #include <vector>
@@ -85,6 +87,8 @@ private:
     std::vector<std::unique_ptr<Goomba>> m_Goombas;
     int m_SpawnPhase = 0;
     std::vector<std::shared_ptr<Koopatroopa>> m_Koopatroopas;
+    std::vector<std::shared_ptr<Bowser>> m_Bowsers;
+    std::vector<std::shared_ptr<BowserFire>> m_BowserFires;
 
     std::vector<std::shared_ptr<Item>> m_Items;
     std::vector<std::shared_ptr<Fireball>> m_Fireballs;

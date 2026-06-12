@@ -7,45 +7,46 @@
 
 class Koopatroopa : public Util::GameObject {
 public:
-    // 🌟 1. 將 State 移到 public 區塊，這樣 AppUpdate 才能看到它！
+    // 🌟 1. 擴充飛天狀態
     enum class State {
-        WALKING,
-        DEAD
+        FLYING,        // 🌟 飛天彈跳中
+        WALKING,       // 正常走路
+        SHELL_IDLE,    // 縮在殼裡不動
+        SHELL_MOVING,  // 被踢飛高速滑行
+        DEAD           // 翻肚死亡
     };
 
-    Koopatroopa(float spawnWorldX, float spawnWorldY);
+    // 🌟 2. 加上 isFlying 開關，預設為 false (這樣舊的烏龜就不會受影響)
+    Koopatroopa(float spawnWorldX, float spawnWorldY, bool isFlying = false);
 
     void Update(float deltaTime, float worldOffset, const std::vector<Rect>& obstacles);
-
-    // 處理與玩家的互動
     void Interact(Player* player, float worldOffset);
-
     Rect GetRect(float worldOffset) const;
 
     bool IsDead() const { return m_State == State::DEAD; }
-
-    // 🌟 2. 補上讓外部取得當前狀態的函式
     State GetState() const { return m_State; }
 
-    // 🌟 3. 補上受擊函式 (被踩踏或被火球炸)
     void Stomp();
+    void Kick(bool toRight);
 
 private:
-    State m_State = State::WALKING;
+    State m_State;
 
     float m_WorldX;
     float m_WorldY;
     float m_VelocityY = 0.0f;
 
-    // 🌟 速度設定比較慢
     float m_SpeedX = -1.0f;
     const float GRAVITY = 40.0f;
 
-    // 動畫相關
+    // 動畫與圖片
     std::vector<std::string> m_WalkImages;
+    std::vector<std::string> m_FlyImages; // 🌟 裝飛天圖片的背包
     std::string m_DieImage;
+
     float m_AnimTimer = 0.0f;
     int m_AnimFrame = 0;
 
     float m_DeadTimer = 0.0f;
+    float m_IdleTimer = 0.0f;
 };

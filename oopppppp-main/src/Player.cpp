@@ -200,7 +200,20 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Mario->SetPosition(currentPos);
         return;
     }
-
+    // 👇👇👇 直接在這裡插入這段「按 9 切換無敵」的測試邏輯 👇👇👇
+    // ==========================================
+    // 🌟 測試秘技：一鍵切換無敵星星模式 (按數字鍵 9)
+    // ==========================================
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_9)) {
+        if (m_IsStarMode) {
+            m_StarTimer = 0.0f; // 如果已經是無敵狀態，關閉無敵模式
+        }
+        else {
+            GetStar();
+            m_StarTimer = 99999.0f; // 給予無限的無敵時間
+        }
+    }
+    // 👆👆👆 插入結束 👆👆👆
     if (m_CurrentState == AnimState::RUN) {
         m_RunAnimTimer += deltaTime;
         if (m_RunAnimTimer >= 0.1f) {
@@ -571,4 +584,13 @@ void Player::SetWorldPosition(float worldX, float y) {
 
 float Player::GetWorldX(float worldOffset) const {
     return worldOffset + m_Mario->GetPosition().x;
+}
+
+// ==========================================
+// 🌟 新增：瑪利歐踩到怪物時的彈跳動作
+// ==========================================
+void Player::Bounce() {
+    // 踩到敵人後給予瑪利歐一個向上的速度
+    // 400.0f 大約是正常跳躍高度的一半，非常符合踩踏後的回饋感！
+    m_Velocity.y = 400.0f;
 }

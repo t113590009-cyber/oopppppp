@@ -3,7 +3,7 @@
 #include "Star.hpp"
 #include "Coin.hpp"
 #include "FireFlower.hpp"
-#include "MovingBlock.hpp" // 🌟 1. 加入移動平台的標頭檔！
+#include "MovingBlock.hpp" 
 
 // ==========================================
 // 1. 更新磚塊與道具 (包含從磚塊蹦出來的邏輯)
@@ -13,7 +13,6 @@ void App::UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles) 
 
     // 更新磚塊
     for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
-        // 🌟 核心魔法：因為多型 (Polymorphism)，這行會自動幫你更新普通磚塊或移動平台！
         (*it)->Update(dt, m_WorldOffset);
 
         if ((*it)->HasJustSpawnedItem()) {
@@ -113,7 +112,11 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
-    // 栗子球生成邏輯
+    // ==========================================
+    // 🌟 怪物生成總管 (依照關卡分配)
+    // ==========================================
+
+    // 🍄 【第一關】 怪物配置
     if (m_CurrentLevel == 1) {
         if (m_SpawnPhase == 0 && m_WorldOffset > 800.0f) {
             auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f);
@@ -141,8 +144,38 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
             m_SpawnPhase = 3;
         }
     }
+    // 🐢 【第二關】 怪物配置
+    else if (m_CurrentLevel == 2) {
+        if (m_SpawnPhase == 0 && m_WorldOffset > 500.0f) { // <-- 數字可自行調整
+            // TODO: 在這裡加入第二關的第一波怪物
+            // 例如：
+            // auto flyingTurtle = std::make_shared<Koopatroopa>(m_WorldOffset + 800.0f, 150.0f, true);
+            // m_Root.AddChild(flyingTurtle);
+            // m_Koopatroopas.push_back(flyingTurtle);
 
+            m_SpawnPhase = 1;
+        }
+        else if (m_SpawnPhase == 1 && m_WorldOffset > 1500.0f) {
+            // TODO: 在這裡加入第二關的第二波怪物
+
+            m_SpawnPhase = 2;
+        }
+    }
+    // 🔥 【第三關】 怪物配置
+    else if (m_CurrentLevel == 3) {
+        if (m_SpawnPhase == 0 && m_WorldOffset > 500.0f) {
+            // 🌟 召喚大魔王庫巴！
+            auto bowser = std::make_shared<Bowser>(m_WorldOffset + 1000.0f, -100.0f);
+            m_Root.AddChild(bowser);
+            m_Bowsers.push_back(bowser);
+
+            m_SpawnPhase = 1;
+        }
+    }
+
+    // ==========================================
     // 栗子球更新與碰撞
+    // ==========================================
     const int STOMP_SCORES[] = { 100, 200, 400, 500, 800, 1000, 2000, 4000, 8000, -1 };
     Rect marioScreenRect = { pPos.x - 18.0f, pPos.y - 25.0f, 36.0f, 20.0f };
 
@@ -209,7 +242,9 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
-    // 烏龜更新
+    // ==========================================
+    // 烏龜更新與碰撞
+    // ==========================================
     for (auto& koopa : m_Koopatroopas) {
         koopa->Update(dt, m_WorldOffset, allObstacles);
         Rect koopaRect = koopa->GetRect(m_WorldOffset);
@@ -232,5 +267,53 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
 
         koopa->Interact(m_Player.get(), m_WorldOffset);
+    }
+    // ==========================================
+    // 🌟 庫巴的火焰更新與碰撞
+    // ==========================================
+    for (auto it = m_BowserFires.begin(); it != m_BowserFires.end(); ) {
+        (*it)->Update(dt, m_WorldOffset);
+        (*it)->Interact(m_Player.get(), m_WorldOffset);
+
+        if ((*it)->IsDestroyed()) {
+            m_Root.RemoveChild(*it);
+            it = m_BowserFires.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
+
+    // // ==========================================
+    // 🌟 庫巴本體更新與碰撞
+    // ==========================================
+    for (auto& bowser : m_Bowsers) {
+        // 🌟 接收庫巴吐出的火球
+        auto newFire = bowser->Update(dt, m_WorldOffset, allObstacles);
+        if (newFire) {
+            // 如果真的有吐出火球，就由 App 加到畫面上！
+            m_Root.AddChild(newFire);
+            m_BowserFires.push_back(newFire);
+        }
+
+        bowser->Interact(m_Player.get(), m_WorldOffset);
+
+        // 偵測瑪利歐的火球有沒有打中庫巴
+        for (auto& fb : m_Fireballs) {
+            Rect fbScreenRect = fb->GetRect();
+            fbScreenRect.x -= m_WorldOffset;
+
+            if (!fb->IsDestroyed() && !fb->IsExploding() && !bowser->IsDead()) {
+                if (CollisionHandler::CheckCollision(fbScreenRect, bowser->GetRect(m_WorldOffset))) {
+                    bowser->TakeDamage(1); // 扣一滴血
+                    fb->Explode();         // 火球爆炸
+
+                    // 打中特效加分
+                    auto score = std::make_shared<ScoreEffect>(100, fbScreenRect.x + m_WorldOffset, fbScreenRect.y + 20.0f);
+                    m_Root.AddChild(score->GetDrawable());
+                    m_ScoreEffects.push_back(score);
+                }
+            }
+        }
     }
 }

@@ -34,6 +34,9 @@ public:
     void GetFireFlower();
     void Die();
 
+    // 🌟 新增：瑪利歐踩到敵人時的彈跳動作
+    void Bounce();
+
     void StartFlagSlide(float poleWorldX);
     bool IsFlagSliding() const { return m_CurrentState == AnimState::FLAG_SLIDE; }
 
