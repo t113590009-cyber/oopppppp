@@ -200,9 +200,9 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Mario->SetPosition(currentPos);
         return;
     }
-    // 👇👇👇 直接在這裡插入這段「按 9 切換無敵」的測試邏輯 👇👇👇
+
     // ==========================================
-    // 🌟 測試秘技：一鍵切換無敵星星模式 (按數字鍵 9)
+    // 🌟 測試秘技：一鍵切換【空中無限跳 + 無敵】模式 (按數字鍵 9)
     // ==========================================
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_9)) {
         if (m_IsStarMode) {
@@ -213,7 +213,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
             m_StarTimer = 99999.0f; // 給予無限的無敵時間
         }
     }
-    // 👆👆👆 插入結束 👆👆👆
+
     if (m_CurrentState == AnimState::RUN) {
         m_RunAnimTimer += deltaTime;
         if (m_RunAnimTimer >= 0.1f) {
@@ -429,8 +429,13 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Velocity.x = 0.0f;
     }
 
-    // 動態跳躍與重力
-    if (m_IsOnGround && btnJump && !m_WasJumping && !isCrouching) {
+    // ==========================================
+    // 🦘 動態跳躍與重力 (已修改：支援 NUM_9 空中無限跳)
+    // ==========================================
+    // 💡 關鍵修改：如果是靠 NUM_9 觸發的超長無敵狀態，就無視 m_IsOnGround (地面) 的限制！
+    bool isCheatJump = (m_IsStarMode && m_StarTimer > 50000.0f);
+
+    if ((m_IsOnGround || isCheatJump) && btnJump && !m_WasJumping && !isCrouching) {
         float absVx = std::abs(m_Velocity.x);
         float jumpInitVel = 4.00f;
 
@@ -438,7 +443,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         else if (absVx >= maxWalkSpeed) jumpInitVel = 4.12f;
 
         m_Velocity.y = jumpInitVel * NES_SCALE;
-        m_IsOnGround = false;
+        m_IsOnGround = false; // 每次空中跳躍都重設離地狀態
     }
 
     float gravity = 0.43f * NES_SCALE * 60.0f;

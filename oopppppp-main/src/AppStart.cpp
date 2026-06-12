@@ -249,6 +249,24 @@ void App::LoadLevel2Objects() {
         m_Root.AddChild(movingBlock->GetCharacter());
         };
 
+    // 🪙 【新增工具 E：金幣專用格子生成器】(參數改為 float，完美支援 10.5 半格定位)
+    auto AddCoinByGrid = [this](int imgNum, float col, float row) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
+        float absoluteY = -360.0f + (row * 48.0f);
+
+        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
+        m_Root.AddChild(coin);
+        m_Items.push_back(coin);
+    };
+
+    // 🪙 【新增工具 F：整排金幣鋪設器】(同步支援 float 參數)
+    auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
+        for (float col = startCol; col <= endCol; col += 1.0f) {
+            AddCoinByGrid(imgNum, col, row);
+        }
+    };
+
     // 🧱 【純格子地圖配置區】 依照要求：數值完全不更動！
 
     AddObstacleByGrid(1, 0, 1, 15, 0, 1);
@@ -295,35 +313,47 @@ void App::LoadLevel2Objects() {
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(11, 0, 11, 3, 0, 1);
     if (m_CheatEnabled) {
-        AddObstacleByGrid(1,0,5,15,0,1);//測試作弊地圖
-        AddObstacleByGrid(2,0,5,15,0,4);//測試作弊地圖
-        AddObstacleByGrid(6,0,7,15,0,3);//測試作弊地圖
-        AddObstacleByGrid(8,0,8,15,0,3);//測試作弊地圖
+        AddObstacleByGrid(1,0,11,15,0,1);//測試作弊地圖
+
     }
 
-
-
-
-    // 📍 2. 問號箱、磚塊箱
-    // SpawnBricksByGrid(2, 3, 12, 8);
+    // 💰 【金幣配置專區】 (你可以在這裡動手加你想要的金幣了！)
+    // 💡 格式：AddCoinByGrid(頁數, X格, Y格); 或是 SpawnCoinsByGrid(頁數, 起始X, 結束X, Y格);
+    AddCoinByGrid(2,11,10.5);
+    AddCoinByGrid(2,12,10.5);
+    AddCoinByGrid(2,13,10.5);
+    AddCoinByGrid(3,1,3.5);
+    AddCoinByGrid(3,6,12);
+    AddCoinByGrid(3,7,12);
+    AddCoinByGrid(4,12,10.5);
+    AddCoinByGrid(4,13,10.5);
+    AddCoinByGrid(4,14,10.5);
+    AddCoinByGrid(4,15,10.5);
+    AddCoinByGrid(6,4,9.5);
+    AddCoinByGrid(6,5,9.5);
+    AddCoinByGrid(6,13,10.5);
+    AddCoinByGrid(6,14,10.5);
+    AddCoinByGrid(7,1,10.5);
+    AddCoinByGrid(7,2,10.5);
+    AddCoinByGrid(8,1,2.5);
+    AddCoinByGrid(8,2,2.5);
+    AddCoinByGrid(8,3,2.5);
+    AddCoinByGrid(8,8,9.5);
+    AddCoinByGrid(8,9,9.5);
 
     // 🎯 3. 移動平台動態配置專區（使用你的專屬 road.png 平台圖片）
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
 
     // ✨ 【平台一】：在第 4 張圖的中間，上下垂直移動的平台
-    // 參數：第 4 張圖、第 8 格(中央)、高度第 3 層、垂直軸向、移動範圍 150、速度 80
     AddMovingBlockByGrid(platformImg, 4, 8.0f, 5.0f, MovingBlock::Axis::VERTICAL, 155.0f, 100.0f);
 
-
     // ✨ 【平台二（低平台）】：在第 6 張圖與第 7 張圖銜接處
-    // 靠近第 6 張圖的最右側邊緣（第 14 格），高度第 5 層，左右水平移動
     AddMovingBlockByGrid(platformImg, 6, 6.0f, 5.0f, MovingBlock::Axis::HORIZONTAL, 160.0f, 110.0f);
 
     // ✨ 【平台三（高平台）】：在第 6 張圖與第 7 張圖銜接處
-    // 靠近第 7 張圖的最左側邊緣（第 1 格），高度第 6 層，左右水平移動，與低平台形成完美的連續跳躍高低差
     AddMovingBlockByGrid(platformImg, 6, 12.0f, 6.f, MovingBlock::Axis::HORIZONTAL, 160.0f, 130.0f);
 
-    // 預設參數：第 9 張圖、第 5 格、高度第 5 層、左右水平移動、移動範圍 150、速度 100
+    // 預設參數：第 9 張圖、第 5 格、高度第 5 層
     AddMovingBlockByGrid(platformImg, 9, 4.0f, 7.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 110.0f);
 }
 
@@ -378,59 +408,85 @@ void App::LoadLevel3Objects() {
         m_Root.AddChild(movingBlock->GetCharacter());
     };
 
-    // 鋪設 1-3 的基本地平線地板
-    // 從第 1 張圖第 0 格，一路鋪到第 10 張圖的最右邊(第 15 格)，高度為 0 到 1 層 (兩格厚度 = 96)
-    AddObstacleByGrid(1,0,1,2,0,7);
-    AddObstacleByGrid(1,3,1,3,0,6);
-    AddObstacleByGrid(1,4,1,4,0,5);
-    AddObstacleByGrid(1,5,1,12,0,4);
-    AddObstacleByGrid(1,15,1,15,0,4);
-    AddObstacleByGrid(1,0,1,15,10,12);
-    AddObstacleByGrid(2,0,2,9,0,4);
-    AddObstacleByGrid(2,13,2,15,0,4);
-    AddObstacleByGrid(2,0,2,7,10,12);
-    AddObstacleByGrid(2,7,2,7,9,9);
-    AddObstacleByGrid(2,8,2,15,12,12);
-    AddObstacleByGrid(3,3,3,15,0,5);
-    AddObstacleByGrid(3,0,3,4,12,12);
-    AddObstacleByGrid(3,5,3,15,9,12);
-    AddObstacleByGrid(4,0,4,15,0,5);
-    AddObstacleByGrid(4,0,4,15,9,12);
-    AddObstacleByGrid(5,0,5,7,0,5);
-    AddObstacleByGrid(5,8,5,15,0,4);
-    AddObstacleByGrid(5,0,5,7,9,12);
-    AddObstacleByGrid(5,8,5,15,12,12);
-    AddObstacleByGrid(6,0,6,15,0,4);
-    AddObstacleByGrid(6,0,6,15,12,12);
-    AddObstacleByGrid(6,0,6,0,11,11);
-    AddObstacleByGrid(6,8,6,8,11,11);
-    AddObstacleByGrid(7,0,7,7,0,4);
-    AddObstacleByGrid(7,8,7,15,0,1);
-    AddObstacleByGrid(7,0,7,15,12,12);
-    AddObstacleByGrid(7,1,7,7,10,11);
-    AddObstacleByGrid(8,0,8,15,0,1);
-    AddObstacleByGrid(8,4,8,7,2,4);
-    AddObstacleByGrid(8,11,8,15,2,4);
-    AddObstacleByGrid(8,0,8,15,12,12);
-    AddObstacleByGrid(8,11,8,15,10,11);
-    AddObstacleByGrid(9,0,9,12,4,4);
-    AddObstacleByGrid(9,13,9,15,0,5);
-    AddObstacleByGrid(9,0,9,15,12,12);
-    AddObstacleByGrid(9,14,9,15,9,11);
-    AddObstacleByGrid(10,0,10,15,0,1);
-    AddObstacleByGrid(10,0,10,15,12,12);
+    // 🪙 【新增工具 E：金幣專用格子生成器】(參數改為 float，完美支援半格定位)
+    auto AddCoinByGrid = [this](int imgNum, float col, float row) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
+        float absoluteY = -360.0f + (row * 48.0f);
 
-    //方塊、問號方塊、金幣
-    // 範例：在第 2 張圖的第 5 格，高度第 5 層放一個香菇問號箱
-    // AddBlockByGrid(Block::Type::QUESTION, 2, 5, 5, Block::ItemType::MUSHROOM);
+        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1); // 1 代表地圖懸浮可吃
+        m_Root.AddChild(coin);
+        m_Items.push_back(coin);
+    };
+
+    // 🪙 【新增工具 F：整排金幣鋪設器】(同步支援 float 參數)
+    auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
+        for (float col = startCol; col <= endCol; col += 1.0f) {
+            AddCoinByGrid(imgNum, col, row);
+        }
+    };
+
+    // 鋪設 1-3 的基本地平線地板
+    AddObstacleByGrid(1, 0, 1, 2, 0, 7);
+    AddObstacleByGrid(1, 3, 1, 3, 0, 6);
+    AddObstacleByGrid(1, 4, 1, 4, 0, 5);
+    AddObstacleByGrid(1, 5, 1, 12, 0, 4);
+    AddObstacleByGrid(1, 15, 1, 15, 0, 4);
+    AddObstacleByGrid(1, 0, 1, 15, 10, 12);
+    AddObstacleByGrid(2, 0, 2, 9, 0, 4);
+    AddObstacleByGrid(2, 13, 2, 15, 0, 4);
+    AddObstacleByGrid(2, 0, 2, 7, 10, 12);
+    AddObstacleByGrid(2, 7, 2, 7, 9, 9);
+    AddObstacleByGrid(2, 8, 2, 15, 12, 12);
+    AddObstacleByGrid(3, 3, 3, 15, 0, 5);
+    AddObstacleByGrid(3, 0, 3, 4, 12, 12);
+    AddObstacleByGrid(3, 5, 3, 15, 9, 12);
+    AddObstacleByGrid(4, 0, 4, 15, 0, 5);
+    AddObstacleByGrid(4, 0, 4, 15, 9, 12);
+    AddObstacleByGrid(5, 0, 5, 7, 0, 5);
+    AddObstacleByGrid(5, 8, 5, 15, 0, 4);
+    AddObstacleByGrid(5, 0, 5, 7, 9, 12);
+    AddObstacleByGrid(5, 8, 5, 15, 12, 12);
+    AddObstacleByGrid(6, 0, 6, 15, 0, 4);
+    AddObstacleByGrid(6, 0, 6, 15, 12, 12);
+    AddObstacleByGrid(6, 0, 6, 0, 11, 11);
+    AddObstacleByGrid(6, 8, 6, 8, 11, 11);
+    AddObstacleByGrid(7, 0, 7, 7, 0, 4);
+    AddObstacleByGrid(7, 8, 7, 15, 0, 1);
+    AddObstacleByGrid(7, 0, 7, 15, 12, 12);
+    AddObstacleByGrid(7, 1, 7, 7, 10, 11);
+    AddObstacleByGrid(8, 0, 8, 15, 0, 1);
+    AddObstacleByGrid(8, 4, 8, 7, 2, 4);
+    AddObstacleByGrid(8, 11, 8, 15, 2, 4);
+    AddObstacleByGrid(8, 0, 8, 15, 12, 12);
+    AddObstacleByGrid(8, 11, 8, 15, 10, 11);
+    AddObstacleByGrid(9, 0, 9, 12, 4, 4);
+    AddObstacleByGrid(9, 13, 9, 15, 0, 5);
+    AddObstacleByGrid(9, 0, 9, 15, 12, 12);
+    AddObstacleByGrid(9, 14, 9, 15, 9, 11);
+    AddObstacleByGrid(10, 0, 10, 15, 0, 1);
+    AddObstacleByGrid(10, 0, 10, 15, 12, 12);
+    AddObstacleByGrid(2,7,2,7,8,8);
+    AddObstacleByGrid(3,5,3,5,8,8);
+    AddObstacleByGrid(4,1,4,1,8,8);
+    AddObstacleByGrid(4,12,4,12,8,8);
+    AddObstacleByGrid(5,3,5,3,8,8);
+    AddObstacleByGrid(5,12,5,12,5,5);
+    AddObstacleByGrid(6,0,6,0,10,10);
+    AddObstacleByGrid(6,4,6,4,5,5);
+    AddObstacleByGrid(6,8,6,8,10,10);
+    AddObstacleByGrid(6,12,6,12,5,5);
+
+
+
+    // 💰 【金幣配置專區】 (可以在這裡盡情加你想要的第三關金幣囉！)
+    // 💡 格式範例：AddCoinByGrid(2, 11.0f, 10.5f);
 
     // 🎯 3. 移動平台配置區（使用你的專屬 road.png 平台圖片）
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
 
-    // 預設參數：第 9 張圖、第 5.0 格、高度第 6.0 層（剛好在 row 4 地板上方）、左右水平移動、移動範圍 150、速度 100
-    // (你可以根據需求自由修改下方 5.0f, 6.0f 的格數位置，甚至改為 5.5f 等半格定位！)
+    // 預設參數：第 9 張圖、第 6.0 格、高度第 9.0 層
     AddMovingBlockByGrid(platformImg, 9, 6.0f, 9.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f);
-
 
     // 這是切換關卡時，負責重置瑪利歐的程式碼
     m_Player->SetWorldPosition(-400.0f, 80.0f); // 💡 關鍵：把 Y 設成 150.0f，確保他在超高磚塊的上方出生！
