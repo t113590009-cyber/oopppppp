@@ -316,6 +316,8 @@ void App::LoadLevel2Objects() {
         AddObstacleByGrid(1,0,11,15,0,1);//測試作弊地圖
 
     }
+    // 🎁 【2-3 關】問號箱子配置 第 4 張地圖、第 11 格、高度第 4 層生成
+    AddBlockByGrid(Block::Type::QUESTION, 4, 11, 4, Block::ItemType::MUSHROOM);
 
     // 💰 【金幣配置專區】 (你可以在這裡動手加你想要的金幣了！)
     // 💡 格式：AddCoinByGrid(頁數, X格, Y格); 或是 SpawnCoinsByGrid(頁數, 起始X, 結束X, Y格);
@@ -414,7 +416,7 @@ void App::LoadLevel3Objects() {
         float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
         float absoluteY = -360.0f + (row * 48.0f);
 
-        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1); // 1 代表地圖懸浮可吃
+        auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
     };
@@ -466,33 +468,39 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 9, 11);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(10, 0, 10, 15, 12, 12);
-    AddObstacleByGrid(2,7,2,7,8,8);
-    AddObstacleByGrid(3,5,3,5,8,8);
-    AddObstacleByGrid(4,1,4,1,8,8);
-    AddObstacleByGrid(4,12,4,12,8,8);
-    AddObstacleByGrid(5,3,5,3,8,8);
-    AddObstacleByGrid(5,12,5,12,5,5);
-    AddObstacleByGrid(6,0,6,0,10,10);
-    AddObstacleByGrid(6,4,6,4,5,5);
-    AddObstacleByGrid(6,8,6,8,10,10);
-    AddObstacleByGrid(6,12,6,12,5,5);
+    AddObstacleByGrid(2, 7, 2, 7, 8, 8);
+    AddObstacleByGrid(3, 5, 3, 5, 8, 8);
+    AddObstacleByGrid(4, 1, 4, 1, 8, 8);
+    AddObstacleByGrid(4, 12, 4, 12, 8, 8);
+    AddObstacleByGrid(5, 3, 5, 3, 8, 8);
+    AddObstacleByGrid(5, 12, 5, 12, 5, 5);
+    AddObstacleByGrid(6, 0, 6, 0, 10, 10);
+    AddObstacleByGrid(6, 4, 6, 4, 5, 5);
+    AddObstacleByGrid(6, 8, 6, 8, 10, 10);
+    AddObstacleByGrid(6, 12, 6, 12, 5, 5);
 
+    // 🧱 【新增：隱形暗牆配置專區】
+    // 一開始是黑色(blackblock)，頂到現形(afterblack)，再頂變(finalafterblack)，裡面藏金幣(COIN)
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 10.0f, 5.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 13.0f, 5.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 11.0f, 9.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 14.0f, 9.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 0.0f,  5.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 1.0f,  9.0f, Block::ItemType::COIN);
 
+    // 🎁 【第 3 關】特定的問號箱子配置
+    AddBlockByGrid(Block::Type::QUESTION, 2, 14.0f, 8.0f, Block::ItemType::MUSHROOM);
 
-    // 💰 【金幣配置專區】 (可以在這裡盡情加你想要的第三關金幣囉！)
-    // 💡 格式範例：AddCoinByGrid(2, 11.0f, 10.5f);
-
-    // 🎯 3. 移動平台配置區（使用你的專屬 road.png 平台圖片）
+    // 🎯 移動平台配置區
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
-
-    // 預設參數：第 9 張圖、第 6.0 格、高度第 9.0 層
     AddMovingBlockByGrid(platformImg, 9, 6.0f, 9.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f);
 
-    // 這是切換關卡時，負責重置瑪利歐的程式碼
-    m_Player->SetWorldPosition(-400.0f, 80.0f); // 💡 關鍵：把 Y 設成 150.0f，確保他在超高磚塊的上方出生！
-    m_Player->ResetStatus();                  // 重置瑪利歐的狀態（避免他帶著死亡狀態復活）
-    m_Player->GetCharacter()->SetVisible(true); // 確保他沒有隱形
+    // 重置瑪利歐位置的程式碼
+    m_Player->SetWorldPosition(-400.0f, 80.0f);
+    m_Player->ResetStatus();
+    m_Player->GetCharacter()->SetVisible(true);
 }
+
 // 🔄 新增：萬能的關卡切換器 (直接貼在 LoadLevel3Objects 下方)
 void App::SwitchLevel(int nextLevel) {
     // 1. 🧹 徹底清空上一關的殘留物

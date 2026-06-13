@@ -14,8 +14,8 @@ public:
     // ==========================================
     virtual ~Block() = default;
 
-    // 🌟 1. 擴充方塊種類：新增 脆磚(FRAGILE) 與 道具磚(ITEM)
-    enum class Type { QUESTION, BRICK, BRICK_FRAGILE, BRICK_ITEM, PIPE_A, PIPE_B };
+    // 🌟 1. 擴充方塊種類：新增 脆磚(FRAGILE)、道具磚(ITEM) 與 隱形道具磚(INVISIBLE_ITEM)
+    enum class Type { QUESTION, BRICK, BRICK_FRAGILE, BRICK_ITEM, PIPE_A, PIPE_B, INVISIBLE_ITEM };
 
     // 🌟 2. 擴充方塊狀態：新增 被破壞(DESTROYED)
     enum class State { NORMAL, BOUNCING, EMPTY, DESTROYED };

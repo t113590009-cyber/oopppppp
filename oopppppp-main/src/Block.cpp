@@ -8,8 +8,8 @@ Block::Block(Type type, glm::vec2 startPos, int interval) {
     m_VelocityY = 0.0f;
     m_BlinkInterval = interval;
 
-    // 🌟 1. 設定方塊一開始有沒有道具 (問號磚跟道具磚預設有道具)
-    if (type == Type::QUESTION || type == Type::BRICK_ITEM) {
+    // 🌟 1. 設定方塊一開始有沒有道具 (問號磚、道具磚、以及隱形磚預設有道具)
+    if (type == Type::QUESTION || type == Type::BRICK_ITEM || type == Type::INVISIBLE_ITEM) {
         m_HasItem = true;
     }
     else {
@@ -37,6 +37,11 @@ Block::Block(Type type, glm::vec2 startPos, int interval) {
     else if (type == Type::PIPE_B) {
         m_NormalImages = { GA_RESOURCE_DIR"/Image/Environment/stage1-1/water pipe b.png" };
         m_EmptyImages = {};
+    }
+    // 🌟 1-4 城堡隱形暗牆專屬三階段圖片初始化
+    else if (type == Type::INVISIBLE_ITEM) {
+        m_NormalImages = { GA_RESOURCE_DIR"/Image/Props/1-4/blackblock.png" };         // 第一階段：全黑隱形
+        m_EmptyImages = { GA_RESOURCE_DIR"/Image/Props/1-4/finalafterblack.png" };    // 第三階段：落地灰色空箱
     }
     else {
         m_NormalImages = { GA_RESOURCE_DIR"/Image/Environment/stage1-1/brick.png" };
@@ -79,7 +84,8 @@ void Block::Update(float deltaTime, float worldOffset) {
                 m_JustSpawnedItem = true; // 舉手🙋‍♂️！通知 AppUpdate 生成道具
             }
 
-            if (m_Type == Type::QUESTION || m_Type == Type::BRICK_ITEM) {
+            // 🌟 落地判斷：將 INVISIBLE_ITEM 納入，讓它著地時切換到 m_EmptyImages (finalafterblack.png)
+            if (m_Type == Type::QUESTION || m_Type == Type::BRICK_ITEM || m_Type == Type::INVISIBLE_ITEM) {
                 m_State = State::EMPTY;
                 m_Visual->SetAnimation(m_EmptyImages);
                 m_Visual->Pause();
@@ -108,6 +114,12 @@ void Block::Hit(bool isBigMario) {
     if (m_HasItem) {
         m_State = State::BOUNCING;
         m_VelocityY = 9.0f;
+
+        // 🌟 頂到瞬間：如果是隱形磚，立刻切換成第二階段帶白邊的 afterblack.png
+        if (m_Type == Type::INVISIBLE_ITEM) {
+            m_Visual->SetAnimation({ GA_RESOURCE_DIR"/Image/Props/1-4/afterblack.png" });
+        }
+
         return; // 直接返回，避開下方的破壞邏輯
     }
 
