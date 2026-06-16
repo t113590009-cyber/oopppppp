@@ -72,10 +72,15 @@ private:
     std::unique_ptr<Menu> m_Menu;
     std::unique_ptr<Player> m_Player;
     std::unique_ptr<Map> m_Map;
-    std::shared_ptr<Character> m_Castle;
 
+    std::shared_ptr<Character> m_Castle;
     std::shared_ptr<Character> m_Flagpole;
     std::shared_ptr<Character> m_Flag;
+
+    // 🌟 新增：第二關專屬過關物件
+    std::shared_ptr<Character> m_CastleLvl2;
+    std::shared_ptr<Character> m_FlagpoleLvl2;
+    std::shared_ptr<Character> m_FlagLvl2;
 
     std::vector<std::shared_ptr<Block>> m_Blocks;
     CollisionHandler m_Collision;
@@ -111,6 +116,7 @@ private:
     void UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles);
     void UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstacles, const glm::vec2& pPos);
     void HandleLevel1ClearAnimation(float dt, float marioWorldX);
+    void HandleLevel2ClearAnimation(float dt, float marioWorldX);
 };
 
 #endif // APP_HPP

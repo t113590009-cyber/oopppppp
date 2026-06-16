@@ -34,6 +34,26 @@ void App::Start() {
     m_Castle->SetVisible(false);
     m_Root.AddChild(m_Castle);
 
+    // 🌟 【第二關專屬】旗桿、旗子與城堡初始化
+    m_FlagpoleLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/elv_win.png");
+    m_FlagpoleLvl2->m_Transform.scale = { 3.0f, 3.0f };
+    m_FlagpoleLvl2->SetZIndex(1);
+    m_FlagpoleLvl2->SetVisible(false); // 先隱藏
+    m_Root.AddChild(m_FlagpoleLvl2);
+
+    m_FlagLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/flag_win.png");
+    m_FlagLvl2->m_Transform.scale = { 3.0f, 3.0f };
+    m_FlagLvl2->SetZIndex(2);
+    m_FlagLvl2->SetVisible(false);
+    m_Root.AddChild(m_FlagLvl2);
+
+    // 使用你提供的第二關專屬城堡圖片！
+    m_CastleLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Background/stage1-2/castle1-2win.png");
+    m_CastleLvl2->m_Transform.scale = { 3.0f, 3.0f };
+    m_CastleLvl2->SetZIndex(2);
+    m_CastleLvl2->SetVisible(false);
+    m_Root.AddChild(m_CastleLvl2);
+
     auto title = m_Menu->GetTitle();
     auto selector = m_Menu->GetSelector();
     title->m_Transform.scale = { 3.0f, 3.0f };
@@ -200,13 +220,11 @@ void App::LoadLevel2Objects() {
         m_Map->SetVisible(true);
     }
 
-    // ⚙️ 【純格子對齊工具組】 (完全不需要計算 float，直接填格數！)
-
-    // 工具 A：單格生成器
+    // ⚙️ 【純格子對齊工具組】
     auto AddBlockByGrid = [this](Block::Type type, int imgNum, int col, int row, Block::ItemType item = Block::ItemType::NONE) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float worldX = leftEdge + (static_cast<float>(col) * 48.0f) + 24.0f;
-        float worldY = -360.0f + (static_cast<float>(row) * 48.0f); // 自動對齊縱向格子
+        float worldY = -360.0f + (static_cast<float>(row) * 48.0f);
 
         auto block = std::make_shared<Block>(type, glm::vec2{ worldX, worldY });
         block->SetItemType(item);
@@ -214,14 +232,12 @@ void App::LoadLevel2Objects() {
         m_Root.AddChild(block->GetCharacter());
         };
 
-    // 工具 B：整排磚塊鋪設器
     auto SpawnBricksByGrid = [&](int imgNum, int startCol, int endCol, int row) {
         for (int col = startCol; col <= endCol; ++col) {
             AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
         }
         };
 
-    // 工具 C：實體/空氣牆碰撞箱鋪設器
     auto AddObstacleByGrid = [this](int startImg, int startCol, int endImg, int endCol, int startRow, int endRow) {
         float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (static_cast<float>(startCol) * 48.0f);
         float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (static_cast<float>(endCol) * 48.0f) + 48.0f;
@@ -238,7 +254,6 @@ void App::LoadLevel2Objects() {
         }
         };
 
-    // 🌟 【新增工具 D：移動平台專用格子工具】(支援 float，方便精細微調半格)
     auto AddMovingBlockByGrid = [this](const std::string& imgPath, int imgNum, float col, float row, MovingBlock::Axis axis, float range, float speed) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float worldX = leftEdge + (col * 48.0f) + 24.0f;
@@ -249,7 +264,6 @@ void App::LoadLevel2Objects() {
         m_Root.AddChild(movingBlock->GetCharacter());
         };
 
-    // 🪙 【新增工具 E：金幣專用格子生成器】(參數改為 float，完美支援 10.5 半格定位)
     auto AddCoinByGrid = [this](int imgNum, float col, float row) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
@@ -260,15 +274,13 @@ void App::LoadLevel2Objects() {
         m_Items.push_back(coin);
     };
 
-    // 🪙 【新增工具 F：整排金幣鋪設器】(同步支援 float 參數)
     auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
         for (float col = startCol; col <= endCol; col += 1.0f) {
             AddCoinByGrid(imgNum, col, row);
         }
     };
 
-    // 🧱 【純格子地圖配置區】 依照要求：數值完全不更動！
-
+    // 🧱 【純格子地圖配置區】
     AddObstacleByGrid(1, 0, 1, 15, 0, 1);
     AddObstacleByGrid(2, 2, 2, 5, 2, 2);
     AddObstacleByGrid(2, 3, 2, 4, 0, 1);
@@ -312,51 +324,45 @@ void App::LoadLevel2Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 8, 9);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(11, 0, 11, 3, 0, 1);
-    if (m_CheatEnabled) {
-        AddObstacleByGrid(1,0,11,15,0,1);//測試作弊地圖
 
+    if (m_CheatEnabled) {
+        AddObstacleByGrid(1, 0, 11, 15, 0, 1);
     }
-    // 🎁 【2-3 關】問號箱子配置 第 4 張地圖、第 11 格、高度第 4 層生成
+
+    // 🎁 【2-3 關】問號箱子配置
     AddBlockByGrid(Block::Type::QUESTION, 4, 11, 4, Block::ItemType::MUSHROOM);
 
-    // 💰 【金幣配置專區】 (你可以在這裡動手加你想要的金幣了！)
-    // 💡 格式：AddCoinByGrid(頁數, X格, Y格); 或是 SpawnCoinsByGrid(頁數, 起始X, 結束X, Y格);
-    AddCoinByGrid(2,11,10.5);
-    AddCoinByGrid(2,12,10.5);
-    AddCoinByGrid(2,13,10.5);
-    AddCoinByGrid(3,1,3.5);
-    AddCoinByGrid(3,6,12);
-    AddCoinByGrid(3,7,12);
-    AddCoinByGrid(4,12,10.5);
-    AddCoinByGrid(4,13,10.5);
-    AddCoinByGrid(4,14,10.5);
-    AddCoinByGrid(4,15,10.5);
-    AddCoinByGrid(6,4,9.5);
-    AddCoinByGrid(6,5,9.5);
-    AddCoinByGrid(6,13,10.5);
-    AddCoinByGrid(6,14,10.5);
-    AddCoinByGrid(7,1,10.5);
-    AddCoinByGrid(7,2,10.5);
-    AddCoinByGrid(8,1,2.5);
-    AddCoinByGrid(8,2,2.5);
-    AddCoinByGrid(8,3,2.5);
-    AddCoinByGrid(8,8,9.5);
-    AddCoinByGrid(8,9,9.5);
+    // 💰 【金幣配置專區】
+    AddCoinByGrid(2, 11, 10.5);
+    AddCoinByGrid(2, 12, 10.5);
+    AddCoinByGrid(2, 13, 10.5);
+    AddCoinByGrid(3, 1, 3.5);
+    AddCoinByGrid(3, 6, 12);
+    AddCoinByGrid(3, 7, 12);
+    AddCoinByGrid(4, 12, 10.5);
+    AddCoinByGrid(4, 13, 10.5);
+    AddCoinByGrid(4, 14, 10.5);
+    AddCoinByGrid(4, 15, 10.5);
+    AddCoinByGrid(6, 4, 9.5);
+    AddCoinByGrid(6, 5, 9.5);
+    AddCoinByGrid(6, 13, 10.5);
+    AddCoinByGrid(6, 14, 10.5);
+    AddCoinByGrid(7, 1, 10.5);
+    AddCoinByGrid(7, 2, 10.5);
+    AddCoinByGrid(8, 1, 2.5);
+    AddCoinByGrid(8, 2, 2.5);
+    AddCoinByGrid(8, 3, 2.5);
+    AddCoinByGrid(8, 8, 9.5);
+    AddCoinByGrid(8, 9, 9.5);
 
-    // 🎯 3. 移動平台動態配置專區（使用你的專屬 road.png 平台圖片）
+    // 🎯 3. 移動平台動態配置專區
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
-
-    // ✨ 【平台一】：在第 4 張圖的中間，上下垂直移動的平台
     AddMovingBlockByGrid(platformImg, 4, 8.0f, 5.0f, MovingBlock::Axis::VERTICAL, 155.0f, 100.0f);
-
-    // ✨ 【平台二（低平台）】：在第 6 張圖與第 7 張圖銜接處
     AddMovingBlockByGrid(platformImg, 6, 6.0f, 5.0f, MovingBlock::Axis::HORIZONTAL, 160.0f, 110.0f);
-
-    // ✨ 【平台三（高平台）】：在第 6 張圖與第 7 張圖銜接處
     AddMovingBlockByGrid(platformImg, 6, 12.0f, 6.f, MovingBlock::Axis::HORIZONTAL, 160.0f, 130.0f);
-
-    // 預設參數：第 9 張圖、第 5 格、高度第 5 層
     AddMovingBlockByGrid(platformImg, 9, 4.0f, 7.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 110.0f);
+
+
 }
 
 void App::LoadLevel3Objects() {
