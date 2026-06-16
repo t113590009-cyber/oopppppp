@@ -7,16 +7,14 @@
 
 class Koopatroopa : public Util::GameObject {
 public:
-    // 🌟 1. 擴充飛天狀態
     enum class State {
-        FLYING,        // 🌟 飛天彈跳中
+        FLYING,        // 🌟 像電梯一樣上下滑動
         WALKING,       // 正常走路
         SHELL_IDLE,    // 縮在殼裡不動
         SHELL_MOVING,  // 被踢飛高速滑行
         DEAD           // 翻肚死亡
     };
 
-    // 🌟 2. 加上 isFlying 開關，預設為 false (這樣舊的烏龜就不會受影響)
     Koopatroopa(float spawnWorldX, float spawnWorldY, bool isFlying = false);
 
     void Update(float deltaTime, float worldOffset, const std::vector<Rect>& obstacles);
@@ -39,9 +37,17 @@ private:
     float m_SpeedX = -1.0f;
     const float GRAVITY = 40.0f;
 
+    // ==========================================
+    // 🌟 上下滑動專用的變數
+    // ==========================================
+    float m_StartY = 0.0f;         // 記錄一開始生出來的高度
+    float m_FlyRange = 100.0f;     // 上下移動範圍 (100代表往上100、往下100)
+    int m_FlyDirection = 1;        // 1 往上，-1 往下
+    float m_FlySpeed = 60.0f;      // 上下移動速度
+
     // 動畫與圖片
     std::vector<std::string> m_WalkImages;
-    std::vector<std::string> m_FlyImages; // 🌟 裝飛天圖片的背包
+    std::vector<std::string> m_FlyImages;
     std::string m_DieImage;
 
     float m_AnimTimer = 0.0f;
