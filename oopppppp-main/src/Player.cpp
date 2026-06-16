@@ -164,6 +164,12 @@ void Player::TakeDamage() {
 void Player::Die() {
     if (m_CurrentState == AnimState::DEAD) return;
     m_CurrentState = AnimState::DEAD;
+
+    // 🌟 新增：只有在死掉的時候，才把大隻和火球狀態洗掉！
+    m_IsBig = false;
+    m_IsFire = false;
+    m_IsStarMode = false;
+
     if (!m_DeadImages.empty()) m_Mario->SetAnimation(m_DeadImages);
     m_Mario->m_Transform.scale = { 3.0f, 3.0f };
     m_Velocity.x = 0.0f;
@@ -172,7 +178,10 @@ void Player::Die() {
 
 void Player::ResetStatus() {
     m_CurrentState = AnimState::IDLE;
-    m_IsBig = false; m_IsFire = false; m_IsStarMode = false;
+
+    // 🛑 刪掉 m_IsBig 和 m_IsFire 的重置，讓過關可以保留狀態！
+    m_IsStarMode = false; // 🌟 備註：無敵星星通常換關會失效，所以星星的 false 我們保留
+
     m_Velocity = { 0.0f, 0.0f };
     RefreshAnimations();
     m_Mario->SetAnimation(*m_CurrentStandImages);
@@ -281,12 +290,10 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Mario->SetPosition(currentPos); m_CurrentState = nextState; return;
     }
 
-    // ==========================================
     // 🏃 原版物理與輸入偵測
-    // ==========================================
     bool btnLeft = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::LEFT);
     bool btnRight = Util::Input::IsKeyPressed(Util::Keycode::D) || Util::Input::IsKeyPressed(Util::Keycode::RIGHT);
-    bool btnJump = Util::Input::IsKeyPressed(Util::Keycode::W) || Util::Input::IsKeyPressed(Util::Keycode::UP) || Util::Input::IsKeyPressed(Util::Keycode::SPACE);
+    bool btnJump = Util::Input::IsKeyPressed(Util::Keycode::W) || Util::Input::IsKeyPressed(Util::Keycode::UP);
     bool btnDash = Util::Input::IsKeyPressed(Util::Keycode::B);
 
     float absoluteX = worldOffset + currentPos.x;

@@ -10,6 +10,12 @@ void App::SetGameElementsVisible(bool visible) {
     if (m_Castle) m_Castle->SetVisible(visible);
     if (m_Flagpole) m_Flagpole->SetVisible(visible);
     if (m_Flag) m_Flag->SetVisible(visible);
+
+    // 🌟 新增：也要控制第二關的過關物件
+    if (m_CastleLvl2) m_CastleLvl2->SetVisible(visible);
+    if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(visible);
+    if (m_FlagLvl2) m_FlagLvl2->SetVisible(visible);
+
     if (m_Player && m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(visible);
     for (auto& block : m_Blocks) if (block && block->GetCharacter()) block->GetCharacter()->SetVisible(visible);
     if (m_TopUI) m_TopUI->SetVisible(visible);
@@ -200,6 +206,9 @@ void App::Update() {
             if (m_CurrentLevel == 1) {
                 HandleLevel1ClearAnimation(dt, pPos.x + m_WorldOffset);
             }
+            else if (m_CurrentLevel == 2) {
+                HandleLevel2ClearAnimation(dt, pPos.x + m_WorldOffset);
+            }
 
             for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
                 (*it)->Update(dt, m_WorldOffset);
@@ -277,30 +286,49 @@ void App::ResetLevel(bool keepPosition) {
                 m_Player->GetCharacter()->SetVisible(true);
             }
         }
+
+        // 🌟 顯示並重置第一關的過關物件
         if (m_Flagpole) {
             m_Flagpole->SetPosition({ 9147.0f, -95.0f });
             m_Flagpole->SetVisible(true);
         }
         if (m_Flag) {
-            m_Flag->SetPosition({ 9110.0f, 150.0f });
+            m_Flag->SetPosition({ 9110.0f, 150.0f }); // 確保重置旗子高度到最上面
             m_Flag->SetVisible(true);
         }
         if (m_Castle) m_Castle->SetVisible(true);
+
+        // 🛑 隱藏第二關的過關物件 (防止幽靈物件)
+        if (m_CastleLvl2) m_CastleLvl2->SetVisible(false);
+        if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(false);
+        if (m_FlagLvl2) m_FlagLvl2->SetVisible(false);
 
         LoadLevelObjects();
     }
     else if (m_CurrentLevel == 2) {
         if (m_Player) {
             m_Player->ResetStatus();
-            if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
-                m_Player->SetWorldPosition(-450.0f, -264.0f);
-            }
+            if (!keepPosition) m_Player->SetWorldPosition(-400.0f, -244.0f);
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
+        // 🛑 隱藏第一關的過關物件
         if (m_Castle) m_Castle->SetVisible(false);
         if (m_Flagpole) m_Flagpole->SetVisible(false);
         if (m_Flag) m_Flag->SetVisible(false);
+
+        // 🌟 顯示並重置第二關的過關物件！
+        if (m_CastleLvl2) {
+            m_CastleLvl2->SetVisible(true);
+        }
+        if (m_FlagpoleLvl2) {
+            m_FlagpoleLvl2->SetPosition({ 7011.0f, -95.0f });
+            m_FlagpoleLvl2->SetVisible(true);
+        }
+        if (m_FlagLvl2) {
+            m_FlagLvl2->SetPosition({ 6984.0f, 150.0f }); // 確保重置旗子高度到最上面
+            m_FlagLvl2->SetVisible(true);
+        }
 
         LoadLevel2Objects();
     }
@@ -308,14 +336,20 @@ void App::ResetLevel(bool keepPosition) {
         if (m_Player) {
             m_Player->ResetStatus();
             if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
-                m_Player->SetWorldPosition(-450.0f, -264.0f);
+                m_Player->SetWorldPosition(-420.0f, -264.0f);
             }
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
+        // 🛑 隱藏第一關的過關物件
         if (m_Castle) m_Castle->SetVisible(false);
         if (m_Flagpole) m_Flagpole->SetVisible(false);
         if (m_Flag) m_Flag->SetVisible(false);
+
+        // 🛑 隱藏第二關的過關物件 (進入第三關，前面關卡的都要藏好)
+        if (m_CastleLvl2) m_CastleLvl2->SetVisible(false);
+        if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(false);
+        if (m_FlagLvl2) m_FlagLvl2->SetVisible(false);
 
         LoadLevel3Objects();
     }
