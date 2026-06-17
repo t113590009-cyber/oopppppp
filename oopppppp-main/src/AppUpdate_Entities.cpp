@@ -5,13 +5,9 @@
 #include "FireFlower.hpp"
 #include "MovingBlock.hpp" 
 
-// ==========================================
-// 1. 更新磚塊與道具 (包含從磚塊蹦出來的邏輯)
-// ==========================================
 void App::UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles) {
     glm::vec2 pPos = m_Player->GetPosition();
 
-    // 更新磚塊
     for (auto it = m_Blocks.begin(); it != m_Blocks.end(); ) {
         (*it)->Update(dt, m_WorldOffset);
 
@@ -56,7 +52,6 @@ void App::UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles) 
         }
     }
 
-    // 更新道具
     for (auto it = m_Items.begin(); it != m_Items.end(); ) {
         (*it)->Update(dt, m_WorldOffset, allObstacles);
 
@@ -96,11 +91,19 @@ void App::UpdateBlocksAndItems(float dt, const std::vector<Rect>& allObstacles) 
     }
 }
 
-// ==========================================
-// 2. 更新怪物與火球
-// ==========================================
 void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstacles, const glm::vec2& pPos) {
-    // 火球更新
+    if (m_Player->GetState() == AnimState::FLAG_SLIDE) {
+        return;
+    }
+
+    // ==========================================
+    // 🌟 更新並偵測火柱
+    // ==========================================
+    for (auto& fb : m_FireBars) {
+        fb->Update(dt, m_WorldOffset);
+        fb->Interact(m_Player.get(), m_WorldOffset);
+    }
+
     for (auto it = m_Fireballs.begin(); it != m_Fireballs.end(); ) {
         (*it)->Update(dt, m_WorldOffset, allObstacles);
         if ((*it)->IsDestroyed()) {
@@ -112,70 +115,115 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
-    // ==========================================
-    // 🌟 怪物生成總管 (依照關卡分配)
-    // ==========================================
-
-    // 🍄 【第一關】 怪物配置
     if (m_CurrentLevel == 1) {
-        if (m_SpawnPhase == 0 && m_WorldOffset > 800.0f) {
-            auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f);
+        if (m_SpawnPhase == 0 && m_WorldOffset + 650.0f > 696.0f) {
+            auto g = std::make_unique<Goomba>(696.0f);
             m_Root.AddChild(g->GetDrawable());
             m_Goombas.push_back(std::move(g));
             m_SpawnPhase = 1;
         }
-        else if (m_SpawnPhase == 1 && m_WorldOffset > 2500.0f) {
+        else if (m_SpawnPhase == 1 && m_WorldOffset + 650.0f > 1560.0f) {
             for (int i = 0; i < 2; ++i) {
-                auto g = std::make_unique<Goomba>(m_WorldOffset + 700.0f + (i * 100.0f));
+                auto g = std::make_unique<Goomba>(1560.0f + (i * 72.0f));
                 m_Root.AddChild(g->GetDrawable());
                 m_Goombas.push_back(std::move(g));
             }
-            auto turtle = std::make_shared<Koopatroopa>(m_WorldOffset + 1200.0f, -100.0f);
-            m_Root.AddChild(turtle);
-            m_Koopatroopas.push_back(turtle);
             m_SpawnPhase = 2;
         }
-        else if (m_SpawnPhase == 2 && m_WorldOffset > 4500.0f) {
-            for (int i = 0; i < 3; ++i) {
-                auto g = std::make_unique<Goomba>(m_WorldOffset + 750.0f + (i * 120.0f));
+        else if (m_SpawnPhase == 2 && m_WorldOffset + 650.0f > 2088.0f) {
+            for (int i = 0; i < 2; ++i) {
+                auto g = std::make_unique<Goomba>(2088.0f + (i * 72.0f));
                 m_Root.AddChild(g->GetDrawable());
                 m_Goombas.push_back(std::move(g));
             }
             m_SpawnPhase = 3;
         }
+        else if (m_SpawnPhase == 3 && m_WorldOffset + 650.0f > 3480.0f) {
+            for (int i = 0; i < 2; ++i) {
+                auto g = std::make_unique<Goomba>(3480.0f + (i * 72.0f));
+                m_Root.AddChild(g->GetDrawable());
+                m_Goombas.push_back(std::move(g));
+            }
+            m_SpawnPhase = 4;
+        }
+        else if (m_SpawnPhase == 4 && m_WorldOffset + 650.0f > 4728.0f) {
+            auto turtle = std::make_shared<Koopatroopa>(4728.0f, -168.0f);
+            m_Root.AddChild(turtle);
+            m_Koopatroopas.push_back(turtle);
+            m_SpawnPhase = 5;
+        }
+        else if (m_SpawnPhase == 5 && m_WorldOffset + 650.0f > 5112.0f) {
+            for (int i = 0; i < 2; ++i) {
+                auto g = std::make_unique<Goomba>(5112.0f + (i * 72.0f));
+                m_Root.AddChild(g->GetDrawable());
+                m_Goombas.push_back(std::move(g));
+            }
+            m_SpawnPhase = 6;
+        }
+        else if (m_SpawnPhase == 6 && m_WorldOffset + 650.0f > 7992.0f) {
+            for (int i = 0; i < 2; ++i) {
+                auto g = std::make_unique<Goomba>(7992.0f + (i * 72.0f));
+                m_Root.AddChild(g->GetDrawable());
+                m_Goombas.push_back(std::move(g));
+            }
+            m_SpawnPhase = 7;
+        }
     }
-    // 🐢 【第二關】 怪物配置
     else if (m_CurrentLevel == 2) {
-        if (m_SpawnPhase == 0 && m_WorldOffset > 500.0f) { // <-- 數字可自行調整
-            // TODO: 在這裡加入第二關的第一波怪物
-            // 例如：
-            // auto flyingTurtle = std::make_shared<Koopatroopa>(m_WorldOffset + 800.0f, 150.0f, true);
-            // m_Root.AddChild(flyingTurtle);
-            // m_Koopatroopas.push_back(flyingTurtle);
-
+        if (m_SpawnPhase == 0 && m_WorldOffset + 650.0f > 1008.0f) {
+            auto ft = std::make_shared<Koopatroopa>(1008.0f, 120.0f, false);
+            m_Root.AddChild(ft);
+            m_Koopatroopas.push_back(ft);
             m_SpawnPhase = 1;
         }
-        else if (m_SpawnPhase == 1 && m_WorldOffset > 1500.0f) {
-            // TODO: 在這裡加入第二關的第二波怪物
-
+        else if (m_SpawnPhase == 1 && m_WorldOffset + 500.0f > 1728.0f) {
+            for (int i = 0; i < 2; ++i) {
+                auto g = std::make_unique<Goomba>(1728.0f + (i * 96.0f), 168.0f);
+                m_Root.AddChild(g->GetDrawable());
+                m_Goombas.push_back(std::move(g));
+            }
             m_SpawnPhase = 2;
         }
+        else if (m_SpawnPhase == 2 && m_WorldOffset + 650.0f > 3120.0f) {
+            auto ft = std::make_shared<Koopatroopa>(3120.0f, 120.0f, true);
+            m_Root.AddChild(ft);
+            m_Koopatroopas.push_back(ft);
+            m_SpawnPhase = 3;
+        }
+        else if (m_SpawnPhase == 3 && m_WorldOffset + 650.0f > 3456.0f) {
+            auto g = std::make_unique<Goomba>(3456.0f, 168.0f, false);
+            m_Root.AddChild(g->GetDrawable());
+            m_Goombas.push_back(std::move(g));
+            m_SpawnPhase = 4;
+        }
+        else if (m_SpawnPhase == 4 && m_WorldOffset + 650.0f > 4848.0f) {
+            auto ft = std::make_shared<Koopatroopa>(4848.0f, 0.0f, false);
+            m_Root.AddChild(ft);
+            m_Koopatroopas.push_back(ft);
+            m_SpawnPhase = 5;
+        }
+        else if (m_SpawnPhase == 5 && m_WorldOffset + 650.0f > 5040.0f) {
+            auto ft = std::make_shared<Koopatroopa>(5040.0f, 96.0f, true);
+            m_Root.AddChild(ft);
+            m_Koopatroopas.push_back(ft);
+            m_SpawnPhase = 6;
+        }
+        else if (m_SpawnPhase == 6 && m_WorldOffset + 650.0f > 6000.0f) {
+            auto turtle = std::make_shared<Koopatroopa>(6000.0f, -168.0f, false);
+            m_Root.AddChild(turtle);
+            m_Koopatroopas.push_back(turtle);
+            m_SpawnPhase = 7;
+        }
     }
-    // 🔥 【第三關】 怪物配置
     else if (m_CurrentLevel == 3) {
-        if (m_SpawnPhase == 0 && m_WorldOffset > 500.0f) {
-            // 🌟 召喚大魔王庫巴！
-            auto bowser = std::make_shared<Bowser>(m_WorldOffset + 1000.0f, -100.0f);
+        if (m_SpawnPhase == 0 && m_WorldOffset + 1500.0f > 6116.0f) {
+            auto bowser = std::make_shared<Bowser>(6116.0f, 0.0f);
             m_Root.AddChild(bowser);
             m_Bowsers.push_back(bowser);
-
             m_SpawnPhase = 1;
         }
     }
 
-    // ==========================================
-    // 栗子球更新與碰撞
-    // ==========================================
     const int STOMP_SCORES[] = { 100, 200, 400, 500, 800, 1000, 2000, 4000, 8000, -1 };
     Rect marioScreenRect = { pPos.x - 18.0f, pPos.y - 25.0f, 36.0f, 20.0f };
 
@@ -242,9 +290,6 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
-    // ==========================================
-    // 烏龜更新與碰撞
-    // ==========================================
     for (auto& koopa : m_Koopatroopas) {
         koopa->Update(dt, m_WorldOffset, allObstacles);
         Rect koopaRect = koopa->GetRect(m_WorldOffset);
@@ -268,9 +313,7 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
 
         koopa->Interact(m_Player.get(), m_WorldOffset);
     }
-    // ==========================================
-    // 🌟 庫巴的火焰更新與碰撞
-    // ==========================================
+
     for (auto it = m_BowserFires.begin(); it != m_BowserFires.end(); ) {
         (*it)->Update(dt, m_WorldOffset);
         (*it)->Interact(m_Player.get(), m_WorldOffset);
@@ -284,31 +327,24 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
-    // // ==========================================
-    // 🌟 庫巴本體更新與碰撞
-    // ==========================================
     for (auto& bowser : m_Bowsers) {
-        // 🌟 接收庫巴吐出的火球
         auto newFire = bowser->Update(dt, m_WorldOffset, allObstacles);
         if (newFire) {
-            // 如果真的有吐出火球，就由 App 加到畫面上！
             m_Root.AddChild(newFire);
             m_BowserFires.push_back(newFire);
         }
 
         bowser->Interact(m_Player.get(), m_WorldOffset);
 
-        // 偵測瑪利歐的火球有沒有打中庫巴
         for (auto& fb : m_Fireballs) {
             Rect fbScreenRect = fb->GetRect();
             fbScreenRect.x -= m_WorldOffset;
 
             if (!fb->IsDestroyed() && !fb->IsExploding() && !bowser->IsDead()) {
                 if (CollisionHandler::CheckCollision(fbScreenRect, bowser->GetRect(m_WorldOffset))) {
-                    bowser->TakeDamage(1); // 扣一滴血
-                    fb->Explode();         // 火球爆炸
+                    bowser->TakeDamage(1);
+                    fb->Explode();
 
-                    // 打中特效加分
                     auto score = std::make_shared<ScoreEffect>(100, fbScreenRect.x + m_WorldOffset, fbScreenRect.y + 20.0f);
                     m_Root.AddChild(score->GetDrawable());
                     m_ScoreEffects.push_back(score);

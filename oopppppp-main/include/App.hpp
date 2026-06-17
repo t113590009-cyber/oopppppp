@@ -18,6 +18,7 @@
 #include "AnimatedCharacter.hpp"
 #include "Bowser.hpp"
 #include "BowserFire.hpp"
+#include "FireBar.hpp"
 
 #include <memory>
 #include <vector>
@@ -95,6 +96,7 @@ private:
     std::vector<std::shared_ptr<Item>> m_Items;
     std::vector<std::shared_ptr<Fireball>> m_Fireballs;
     std::vector<std::shared_ptr<ScoreEffect>> m_ScoreEffects;
+    std::vector<std::shared_ptr<FireBar>> m_FireBars;
 
     std::shared_ptr<Character> m_FailScreen;
 

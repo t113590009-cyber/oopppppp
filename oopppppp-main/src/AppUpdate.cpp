@@ -322,11 +322,11 @@ void App::ResetLevel(bool keepPosition) {
             m_CastleLvl2->SetVisible(true);
         }
         if (m_FlagpoleLvl2) {
-            m_FlagpoleLvl2->SetPosition({ 6868.0f, -95.0f });
+            m_FlagpoleLvl2->SetPosition({ 7011.0f, -95.0f });
             m_FlagpoleLvl2->SetVisible(true);
         }
         if (m_FlagLvl2) {
-            m_FlagLvl2->SetPosition({ 6845.0f, 150.0f }); // 確保重置旗子高度到最上面
+            m_FlagLvl2->SetPosition({ 6984.0f, 150.0f }); // 確保重置旗子高度到最上面
             m_FlagLvl2->SetVisible(true);
         }
 

@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} "src/Block.cpp" "src
         include/Koopatroopa.hpp
         src/Koopatroopa.cpp "src/FireFlower.cpp" "src/Fireball.cpp"
         src/AppUpdate_Entities.cpp
-        src/AppUpdate_Level.cpp "src/MovingBlock.cpp" "src/BowserFire.cpp" "src/Bowser.cpp")
+        src/AppUpdate_Level.cpp "src/MovingBlock.cpp" "src/BowserFire.cpp" "src/Bowser.cpp" "src/FireBar.cpp")
 
 # --- 4. 編譯選項設定 ---
 if(MSVC)
