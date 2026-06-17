@@ -330,7 +330,7 @@ void App::LoadLevel2Objects() {
     }
 
     // 🎁 【2-3 關】問號箱子配置
-    AddBlockByGrid(Block::Type::QUESTION, 4, 11, 4, Block::ItemType::MUSHROOM);
+    AddBlockByGrid(Block::Type::QUESTION, 4, 11, 5, Block::ItemType::MUSHROOM);
 
     // 💰 【金幣配置專區】
     AddCoinByGrid(2, 11, 10.5);
