@@ -246,6 +246,18 @@ void App::ResetLevel(bool keepPosition) {
     for (auto& fire : m_BowserFires) { if (fire) m_Root.RemoveChild(fire); }
     m_BowserFires.clear();
 
+    // ==========================================
+    // 🌟 修復 Bug：瑪利歐死掉時，徹底把舊火柱拔掉！
+    // ==========================================
+    for (auto& fb : m_FireBars) {
+        if (fb) {
+            for (auto& anim : fb->GetDrawables()) {
+                m_Root.RemoveChild(anim);
+            }
+        }
+    }
+    m_FireBars.clear();
+
     for (auto& effect : m_ScoreEffects) { if (effect) m_Root.RemoveChild(effect->GetDrawable()); }
     m_ScoreEffects.clear();
     for (auto& item : m_Items) { if (item) m_Root.RemoveChild(item); }

@@ -2,6 +2,7 @@
 #include "Util/Logger.hpp"
 #include "Coin.hpp"
 #include "MovingBlock.hpp"
+#include "FireBar.hpp" // 🌟 記得引入火柱
 
 void App::Start() {
     LOG_TRACE("Start");
@@ -162,7 +163,6 @@ void App::LoadLevelObjects() {
             m_Root.AddChild(block->GetCharacter());
         }
     }
-
 
     AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);
@@ -350,8 +350,6 @@ void App::LoadLevel2Objects() {
     AddMovingBlockByGrid(platformImg, 6, 6.0f, 5.0f, MovingBlock::Axis::HORIZONTAL, 160.0f, 110.0f);
     AddMovingBlockByGrid(platformImg, 6, 12.0f, 6.f, MovingBlock::Axis::HORIZONTAL, 160.0f, 130.0f);
     AddMovingBlockByGrid(platformImg, 9, 4.0f, 7.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 110.0f);
-
-
 }
 
 void App::LoadLevel3Objects() {
@@ -401,6 +399,24 @@ void App::LoadLevel3Objects() {
         m_Root.AddChild(movingBlock->GetCharacter());
         };
 
+    // ==========================================
+    // 🌟 新增：火柱輔助產生器
+    // ==========================================
+    auto AddFireBarByGrid = [this](int imgNum, float col, float row, int numFireballs, float speed, float initAngle = 0.0f) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (col * 48.0f) + 24.0f;
+        // Y軸加上 24.0f 讓火柱旋轉中心對齊方塊的中心點
+        float worldY = -360.0f + (row * 48.0f) + 24.0f; 
+
+        auto fireBar = std::make_shared<FireBar>(worldX, worldY, numFireballs, speed, initAngle);
+        
+        // 將火柱的每一顆火球加進渲染樹
+        for (auto& fireballAnim : fireBar->GetDrawables()) {
+            m_Root.AddChild(fireballAnim);
+        }
+        m_FireBars.push_back(fireBar);
+    };
+
     auto AddCoinByGrid = [this](int imgNum, float col, float row) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
@@ -409,12 +425,6 @@ void App::LoadLevel3Objects() {
         auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
-        };
-
-    auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
-        for (float col = startCol; col <= endCol; col += 1.0f) {
-            AddCoinByGrid(imgNum, col, row);
-        }
         };
 
     AddObstacleByGrid(1, 0, 1, 2, 0, 7);
@@ -456,6 +466,8 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 9, 11);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(10, 0, 10, 15, 12, 12);
+
+    // 孤立半空的方塊
     AddObstacleByGrid(2, 7, 2, 7, 8, 8);
     AddObstacleByGrid(3, 5, 3, 5, 8, 8);
     AddObstacleByGrid(4, 1, 4, 1, 8, 8);
@@ -466,6 +478,19 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(6, 4, 6, 4, 5, 5);
     AddObstacleByGrid(6, 8, 6, 8, 10, 10);
     AddObstacleByGrid(6, 12, 6, 12, 5, 5);
+
+    // ==========================================
+    // 🔥 綁定在半空方塊上的火柱大軍
+    // 參數：(圖編號, X格, Y格, 顆數, 旋轉速度, 初始角度)
+    // ==========================================
+    AddFireBarByGrid(2, 7.0f, 8.0f, 6, -2.5f, 0.0f);     // 順時針
+    AddFireBarByGrid(3, 5.0f, 8.0f, 6, 2.5f, 1.57f);     // 逆時針，初始朝上
+    AddFireBarByGrid(4, 1.0f, 8.0f, 6, -3.0f, 3.14f);    // 順時針(快)，初始朝左
+    AddFireBarByGrid(4, 12.0f, 8.0f, 6, 2.0f, 0.0f);     // 逆時針
+    AddFireBarByGrid(5, 3.0f, 8.0f, 6, -2.5f, 1.0f);
+    AddFireBarByGrid(6, 4.0f, 5.0f, 6, 2.5f, 0.0f);
+    AddFireBarByGrid(6, 12.0f, 5.0f, 6, -2.5f, 3.14f);
+
 
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 10.0f, 5.0f, Block::ItemType::COIN);
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 13.0f, 5.0f, Block::ItemType::COIN);
@@ -490,6 +515,14 @@ void App::SwitchLevel(int nextLevel) {
     }
     m_Blocks.clear();
     m_Collision.Clear();
+
+    // 🌟 清除上一關殘留的火柱，避免跨關卡作亂
+    for (auto& fb : m_FireBars) {
+        for (auto& anim : fb->GetDrawables()) {
+            m_Root.RemoveChild(anim);
+        }
+    }
+    m_FireBars.clear();
 
     if (nextLevel == 2) {
         LoadLevel2Objects();

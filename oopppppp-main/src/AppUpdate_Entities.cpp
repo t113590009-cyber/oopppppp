@@ -96,6 +96,14 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         return;
     }
 
+    // ==========================================
+    // 🌟 更新並偵測火柱
+    // ==========================================
+    for (auto& fb : m_FireBars) {
+        fb->Update(dt, m_WorldOffset);
+        fb->Interact(m_Player.get(), m_WorldOffset);
+    }
+
     for (auto it = m_Fireballs.begin(); it != m_Fireballs.end(); ) {
         (*it)->Update(dt, m_WorldOffset, allObstacles);
         if ((*it)->IsDestroyed()) {
@@ -208,8 +216,8 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
     else if (m_CurrentLevel == 3) {
-        if (m_SpawnPhase == 0 && m_WorldOffset + 900.0f > 5496.0f) {
-            auto bowser = std::make_shared<Bowser>(5496.0f, 0.0f);
+        if (m_SpawnPhase == 0 && m_WorldOffset + 1500.0f > 6116.0f) {
+            auto bowser = std::make_shared<Bowser>(6116.0f, 0.0f);
             m_Root.AddChild(bowser);
             m_Bowsers.push_back(bowser);
             m_SpawnPhase = 1;
