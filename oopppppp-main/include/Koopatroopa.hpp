@@ -36,6 +36,7 @@ private:
 
     float m_SpeedX = -1.0f;
     const float GRAVITY = 40.0f;
+    float m_InteractTimer = 0.0f; // 碰撞冷卻計時器
 
     // ==========================================
     // 🌟 上下滑動專用的變數

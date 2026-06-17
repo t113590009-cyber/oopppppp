@@ -4,14 +4,12 @@
 #include "Util/Time.hpp"
 #include "Fireball.hpp"
 
-// 🌟 一鍵隱藏/顯示遊戲背景的小幫手
 void App::SetGameElementsVisible(bool visible) {
     if (m_Map) m_Map->SetVisible(visible);
     if (m_Castle) m_Castle->SetVisible(visible);
     if (m_Flagpole) m_Flagpole->SetVisible(visible);
     if (m_Flag) m_Flag->SetVisible(visible);
 
-    // 🌟 新增：也要控制第二關的過關物件
     if (m_CastleLvl2) m_CastleLvl2->SetVisible(visible);
     if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(visible);
     if (m_FlagLvl2) m_FlagLvl2->SetVisible(visible);
@@ -24,7 +22,6 @@ void App::SetGameElementsVisible(bool visible) {
 void App::Update() {
     float dt = Util::Time::GetDeltaTime();
 
-    // 🌟 懶人載入法：遊戲一開先把 hp.png 與 fail.png 準備好
     if (!m_LifeBg) {
         m_LifeBg = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/UI/hp.png");
         m_LifeBg->SetZIndex(98);
@@ -66,13 +63,11 @@ void App::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_1)) { m_CurrentLevel = 1; ResetLevel(); }
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) { m_CurrentLevel = 3; ResetLevel(); }
 
-    // 🌟 將原本的 Keycode::O 改成 Keycode::NUM_0
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_0)) {
-        m_CheatEnabled = !m_CheatEnabled; // 切換開關
-        ResetLevel(true);                 // 🌟 傳入 true 保持原地
+        m_CheatEnabled = !m_CheatEnabled;
+        ResetLevel(true);
     }
 
-    // --- 1. 選單邏輯 ---
     if (m_Menu->GetVisibility()) {
         m_Menu->Update(dt);
         if (m_Menu->IsStartPressed()) {
@@ -85,7 +80,6 @@ void App::Update() {
             SetGameElementsVisible(false);
         }
     }
-    // --- 2. 💀 GAME OVER 畫面邏輯 ---
     else if (s_ShowGameOver) {
         s_GameOverTimer -= dt;
 
@@ -100,9 +94,7 @@ void App::Update() {
             SetGameElementsVisible(false);
         }
     }
-    // --- 3. 🌟 生命值過場邏輯 ---
     else if (m_ShowLifeScreen) {
-
         static bool s_isLifeUIReady = false;
 
         if (!s_isLifeUIReady) {
@@ -148,7 +140,6 @@ void App::Update() {
             ResetLevel();
         }
     }
-    // --- 4. 遊戲主迴圈邏輯 ---
     else {
         if (m_Player->IsDead()) {
             m_DeathTimer += dt;
@@ -199,7 +190,6 @@ void App::Update() {
                 if (hit.width > 0) allObstacles.push_back(hit);
             }
 
-            // 🌟 將更新磚塊、道具與敵人的工作交給 AppUpdate_Entities.cpp 處理
             UpdateBlocksAndItems(dt, allObstacles);
             UpdateEnemiesAndFireballs(dt, allObstacles, pPos);
 
@@ -235,22 +225,27 @@ void App::Update() {
     m_Root.Update();
 }
 
-// 🔄 重置關卡邏輯
 void App::ResetLevel(bool keepPosition) {
     if (!keepPosition) {
-        m_WorldOffset = 0.0f; // 🌟 只有一般換關/死亡時，畫面才歸零
+        m_WorldOffset = 0.0f;
     }
     m_GameTime = 400.0f;
 
     if (m_Map) {
         m_Map->ShowLevel(m_CurrentLevel);
-        m_Map->Update(m_WorldOffset); // 🌟 帶入當前的 m_WorldOffset，確保地圖對齊現在的畫面
+        m_Map->Update(m_WorldOffset);
     }
 
     for (auto& goomba : m_Goombas) { if (goomba) m_Root.RemoveChild(goomba->GetDrawable()); }
     m_Goombas.clear();
     for (auto& koopa : m_Koopatroopas) { if (koopa) m_Root.RemoveChild(koopa); }
     m_Koopatroopas.clear();
+
+    for (auto& bowser : m_Bowsers) { if (bowser) m_Root.RemoveChild(bowser); }
+    m_Bowsers.clear();
+    for (auto& fire : m_BowserFires) { if (fire) m_Root.RemoveChild(fire); }
+    m_BowserFires.clear();
+
     for (auto& effect : m_ScoreEffects) { if (effect) m_Root.RemoveChild(effect->GetDrawable()); }
     m_ScoreEffects.clear();
     for (auto& item : m_Items) { if (item) m_Root.RemoveChild(item); }
@@ -280,25 +275,23 @@ void App::ResetLevel(bool keepPosition) {
         if (m_Player) {
             m_Player->ResetStatus();
             if (m_Player->GetCharacter()) {
-                if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
+                if (!keepPosition) {
                     m_Player->GetCharacter()->SetPosition({ -300.0f, -264.0f });
                 }
                 m_Player->GetCharacter()->SetVisible(true);
             }
         }
 
-        // 🌟 顯示並重置第一關的過關物件
         if (m_Flagpole) {
             m_Flagpole->SetPosition({ 9147.0f, -95.0f });
             m_Flagpole->SetVisible(true);
         }
         if (m_Flag) {
-            m_Flag->SetPosition({ 9110.0f, 150.0f }); // 確保重置旗子高度到最上面
+            m_Flag->SetPosition({ 9110.0f, 150.0f });
             m_Flag->SetVisible(true);
         }
         if (m_Castle) m_Castle->SetVisible(true);
 
-        // 🛑 隱藏第二關的過關物件 (防止幽靈物件)
         if (m_CastleLvl2) m_CastleLvl2->SetVisible(false);
         if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(false);
         if (m_FlagLvl2) m_FlagLvl2->SetVisible(false);
@@ -312,41 +305,37 @@ void App::ResetLevel(bool keepPosition) {
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
-        // 🛑 隱藏第一關的過關物件
         if (m_Castle) m_Castle->SetVisible(false);
         if (m_Flagpole) m_Flagpole->SetVisible(false);
         if (m_Flag) m_Flag->SetVisible(false);
 
-        // 🌟 顯示並重置第二關的過關物件！
         if (m_CastleLvl2) {
+            m_CastleLvl2->SetPosition({ 7104.0f, -145.0f });
             m_CastleLvl2->SetVisible(true);
         }
         if (m_FlagpoleLvl2) {
-            m_FlagpoleLvl2->SetPosition({ 7011.0f, -95.0f });
+            m_FlagpoleLvl2->SetPosition({ 6867.0f, 6.0f });
             m_FlagpoleLvl2->SetVisible(true);
         }
         if (m_FlagLvl2) {
-            m_FlagLvl2->SetPosition({ 6984.0f, 150.0f }); // 確保重置旗子高度到最上面
+            m_FlagLvl2->SetPosition({ 6840.0f, 210.0f });
             m_FlagLvl2->SetVisible(true);
         }
-
         LoadLevel2Objects();
     }
     else if (m_CurrentLevel == 3) {
         if (m_Player) {
             m_Player->ResetStatus();
-            if (!keepPosition) { // 🌟 只有不保留位置時，才強制移回起點
+            if (!keepPosition) {
                 m_Player->SetWorldPosition(-420.0f, -264.0f);
             }
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
 
-        // 🛑 隱藏第一關的過關物件
         if (m_Castle) m_Castle->SetVisible(false);
         if (m_Flagpole) m_Flagpole->SetVisible(false);
         if (m_Flag) m_Flag->SetVisible(false);
 
-        // 🛑 隱藏第二關的過關物件 (進入第三關，前面關卡的都要藏好)
         if (m_CastleLvl2) m_CastleLvl2->SetVisible(false);
         if (m_FlagpoleLvl2) m_FlagpoleLvl2->SetVisible(false);
         if (m_FlagLvl2) m_FlagLvl2->SetVisible(false);

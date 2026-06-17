@@ -25,6 +25,11 @@ Koopatroopa::Koopatroopa(float spawnWorldX, float spawnWorldY, bool isFlying) {
 }
 
 void Koopatroopa::Update(float deltaTime, float worldOffset, const std::vector<Rect>& obstacles) {
+    // 🌟 減少冷卻計時器，防止同一個動作在 0.1 秒內被連續觸發
+    if (m_InteractTimer > 0.0f) {
+        m_InteractTimer -= deltaTime;
+    }
+
     if (m_State == State::DEAD) {
         m_VelocityY -= GRAVITY * deltaTime;
         m_WorldY += m_VelocityY;
@@ -156,11 +161,15 @@ void Koopatroopa::Update(float deltaTime, float worldOffset, const std::vector<R
 void Koopatroopa::Interact(Player* player, float worldOffset) {
     if (m_State == State::DEAD || !player || player->IsDead()) return;
 
+    bool isBig = player->IsBig() || player->IsFire();
+    float marioHeight = isBig ? 96.0f : 48.0f;
+    float marioBottom = player->GetPosition().y - (isBig ? 48.0f : 24.0f);
+
     Rect koopaRect = GetRect(worldOffset);
     Rect playerBody = {
         worldOffset + player->GetPosition().x - 18.0f,
-        player->GetPosition().y - 20.0f,
-        36.0f, 40.0f
+        marioBottom,
+        36.0f, marioHeight
     };
 
     if (!CollisionHandler::CheckCollision(koopaRect, playerBody)) return;
@@ -173,10 +182,9 @@ void Koopatroopa::Interact(Player* player, float worldOffset) {
         return;
     }
 
-    Rect playerFeet = player->GetFeetRect(worldOffset);
+    float koopaCenter = koopaRect.y + (koopaRect.height / 2.0f);
 
-    // 🌟 1. 從上方踩踏
-    if (player->GetVelocityY() < 0.0f && playerFeet.y > koopaRect.y + 10.0f) {
+    if (player->GetVelocityY() < 0.0f && marioBottom > koopaCenter - 15.0f) {
         player->Bounce();
 
         if (m_State == State::SHELL_IDLE) {
@@ -188,7 +196,6 @@ void Koopatroopa::Interact(Player* player, float worldOffset) {
         }
     }
     else {
-        // 🌟 2. 從側邊碰撞
         if (m_State == State::WALKING || m_State == State::SHELL_MOVING || m_State == State::FLYING) {
             player->TakeDamage();
         }
@@ -211,7 +218,7 @@ Rect Koopatroopa::GetRect(float worldOffset) const {
 
 void Koopatroopa::Stomp() {
     if (m_State == State::FLYING) {
-        // 🌟 被踩掉翅膀，回歸重力並開始走動
+        // 被踩掉翅膀，回歸重力並開始走動
         m_State = State::WALKING;
         m_VelocityY = 0.0f;
         m_SpeedX = -1.0f; // 預設往左走

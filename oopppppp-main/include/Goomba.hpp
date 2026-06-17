@@ -9,16 +9,14 @@
 
 class Goomba {
 public:
-    enum class State { WALKING, STOMPED, DEAD };
+    enum class State { WALKING, STOMPED, FLIPPED, DEAD };
 
-    // 🌟 確保建構子只有一個 float 參數
-    Goomba(float spawnWorldX);
+    Goomba(float spawnWorldX, float spawnWorldY = -240.0f, bool moveLeft = true);
 
-    // 🌟 這裡加入 const CollisionHandler& collision
     void Update(float deltaTime, float worldOffset, const CollisionHandler& collision);
     void Stomp();
+    void FlipDie();
 
-    // 🌟 確保這行結尾有 const
     Rect GetRect(float worldOffset) const;
 
     State GetState() const { return m_State; }
@@ -29,12 +27,9 @@ private:
     State m_State = State::WALKING;
 
     float m_WorldX;
-
-    // 🌟 1. 移除 const！讓栗子球可以上下移動
     float m_WorldY = -240.0f;
 
-    // 🌟 2. 加上 Y 軸的掉落速度與著地狀態
-    float m_VelocityX = -1.45f;
+    float m_VelocityX;
     float m_VelocityY = 0.0f;
     bool m_IsOnGround = true;
 
