@@ -327,7 +327,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     float maxWalkSpeed = 1.56f * NES_SCALE;
-    float maxRunSpeed = 2.56f * NES_SCALE;
+    float maxRunSpeed = 2.66f * NES_SCALE;
     float maxSpeed = btnDash ? maxRunSpeed : maxWalkSpeed;
 
     float walkAccel = 0.037f * NES_SCALE * 60.0f;
@@ -444,7 +444,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
 
     if ((m_IsOnGround || isCheatJump) && btnJump && !m_WasJumping && !isCrouching) {
         float absVx = std::abs(m_Velocity.x);
-        float jumpInitVel = 4.00f;
+        float jumpInitVel = 4.10f;
 
         if (absVx >= maxRunSpeed - (0.1f * NES_SCALE)) jumpInitVel = 5.00f;
         else if (absVx >= maxWalkSpeed) jumpInitVel = 4.12f;
