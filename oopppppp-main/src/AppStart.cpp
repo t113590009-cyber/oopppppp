@@ -1,18 +1,17 @@
 #include "App.hpp"
 #include "Util/Logger.hpp"
 #include "Coin.hpp"
-#include "MovingBlock.hpp" // 🌟 1. 新增：引入移動平台的標頭檔
+#include "MovingBlock.hpp"
+#include "FireBar.hpp" // 🌟 記得引入火柱
 
 void App::Start() {
     LOG_TRACE("Start");
 
-    // 1. 載入所有基礎物件
     m_Menu = std::make_unique<Menu>();
     m_Player = std::make_unique<Player>();
     m_Map = std::make_unique<Map>();
     m_Map->Init(m_Root);
 
-    // 🚩 旗桿、旗子與城堡初始化
     m_Flagpole = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/elv_win.png");
     m_Flagpole->m_Transform.scale = { 3.0f, 3.0f };
     m_Flagpole->SetZIndex(1);
@@ -34,11 +33,10 @@ void App::Start() {
     m_Castle->SetVisible(false);
     m_Root.AddChild(m_Castle);
 
-    // 🌟 【第二關專屬】旗桿、旗子與城堡初始化
     m_FlagpoleLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/elv_win.png");
     m_FlagpoleLvl2->m_Transform.scale = { 3.0f, 3.0f };
     m_FlagpoleLvl2->SetZIndex(1);
-    m_FlagpoleLvl2->SetVisible(false); // 先隱藏
+    m_FlagpoleLvl2->SetVisible(false);
     m_Root.AddChild(m_FlagpoleLvl2);
 
     m_FlagLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Props/1-1/flag_win.png");
@@ -47,7 +45,6 @@ void App::Start() {
     m_FlagLvl2->SetVisible(false);
     m_Root.AddChild(m_FlagLvl2);
 
-    // 使用你提供的第二關專屬城堡圖片！
     m_CastleLvl2 = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Background/stage1-2/castle1-2win.png");
     m_CastleLvl2->m_Transform.scale = { 3.0f, 3.0f };
     m_CastleLvl2->SetZIndex(2);
@@ -154,21 +151,18 @@ void App::LoadLevelObjects() {
     m_Collision.AddObstacle(15720.0f, -264.0f, 48.0f, 432.0f);
     m_Collision.AddObstacle(15192.0f, -264.0f, 336.0f, 144.0f);
 
-    // 🌟 1. 將水管生成並存入 m_Blocks 容器中（這樣 ResetLevel 時才能徹底被大掃除）
     auto entrancePipe = std::make_shared<Block>(Block::Type::PIPE_A, glm::vec2(2400.0f, -168.0f));
     m_Blocks.push_back(entrancePipe);
 
     auto exitPipe = std::make_shared<Block>(Block::Type::PIPE_B, glm::vec2(7492.0f, -216.0f));
     m_Blocks.push_back(exitPipe);
 
-    // 🌟 3. 核心關鍵：在這裡補上這個迴圈，確保「遊戲第一次剛啟動」時，水管、平台和所有方塊會立刻安全地被加進畫面中！
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) {
-            block->GetCharacter()->SetVisible(false); // 剛開局在主選單時先隱形，點 Start 後才會秀出來
-            m_Root.AddChild(block->GetCharacter());   // 正式加入渲染樹中
+            block->GetCharacter()->SetVisible(false);
+            m_Root.AddChild(block->GetCharacter());
         }
     }
-
 
     AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::COIN);
     AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);
@@ -220,7 +214,6 @@ void App::LoadLevel2Objects() {
         m_Map->SetVisible(true);
     }
 
-    // ⚙️ 【純格子對齊工具組】
     auto AddBlockByGrid = [this](Block::Type type, int imgNum, int col, int row, Block::ItemType item = Block::ItemType::NONE) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float worldX = leftEdge + (static_cast<float>(col) * 48.0f) + 24.0f;
@@ -272,15 +265,14 @@ void App::LoadLevel2Objects() {
         auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
-    };
+        };
 
     auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
         for (float col = startCol; col <= endCol; col += 1.0f) {
             AddCoinByGrid(imgNum, col, row);
         }
-    };
+        };
 
-    // 🧱 【純格子地圖配置區】
     AddObstacleByGrid(1, 0, 1, 15, 0, 1);
     AddObstacleByGrid(2, 2, 2, 5, 2, 2);
     AddObstacleByGrid(2, 3, 2, 4, 0, 1);
@@ -329,10 +321,8 @@ void App::LoadLevel2Objects() {
         AddObstacleByGrid(1, 0, 11, 15, 0, 1);
     }
 
-    // 🎁 【2-3 關】問號箱子配置
-    AddBlockByGrid(Block::Type::QUESTION, 4, 11, 5, Block::ItemType::MUSHROOM);
+    AddBlockByGrid(Block::Type::QUESTION, 4, 11, 6, Block::ItemType::MUSHROOM);
 
-    // 💰 【金幣配置專區】
     AddCoinByGrid(2, 11, 10.5);
     AddCoinByGrid(2, 12, 10.5);
     AddCoinByGrid(2, 13, 10.5);
@@ -355,22 +345,17 @@ void App::LoadLevel2Objects() {
     AddCoinByGrid(8, 8, 9.5);
     AddCoinByGrid(8, 9, 9.5);
 
-    // 🎯 3. 移動平台動態配置專區
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
     AddMovingBlockByGrid(platformImg, 4, 8.0f, 5.0f, MovingBlock::Axis::VERTICAL, 155.0f, 100.0f);
     AddMovingBlockByGrid(platformImg, 6, 6.0f, 5.0f, MovingBlock::Axis::HORIZONTAL, 160.0f, 110.0f);
     AddMovingBlockByGrid(platformImg, 6, 12.0f, 6.f, MovingBlock::Axis::HORIZONTAL, 160.0f, 130.0f);
     AddMovingBlockByGrid(platformImg, 9, 4.0f, 7.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 110.0f);
-
-
 }
 
 void App::LoadLevel3Objects() {
     if (m_Map) {
         m_Map->SetVisible(true);
     }
-
-    // ⚙️ 【純格子對齊工具組】（已改為 float，支援帶有 .5f 的半格定位）
 
     auto AddBlockByGrid = [this](Block::Type type, int imgNum, float col, float row, Block::ItemType item = Block::ItemType::NONE) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
@@ -381,15 +366,14 @@ void App::LoadLevel3Objects() {
         block->SetItemType(item);
         m_Blocks.push_back(block);
         m_Root.AddChild(block->GetCharacter());
-    };
+        };
 
     auto SpawnBricksByGrid = [&](int imgNum, float startCol, float endCol, float row) {
         for (float col = startCol; col <= endCol; col += 1.0f) {
             AddBlockByGrid(Block::Type::BRICK_FRAGILE, imgNum, col, row);
         }
-    };
+        };
 
-    // 🏆 終極版空氣牆工具 (自動切割成 48x48 完美方塊，已改為 float 支援半格)
     auto AddObstacleByGrid = [this](int startImg, float startCol, int endImg, float endCol, float startRow, float endRow) {
         float totalStartX = -450.0f + static_cast<float>(startImg - 1) * 768.0f + (startCol * 48.0f);
         float totalEndX = -450.0f + static_cast<float>(endImg - 1) * 768.0f + (endCol * 48.0f) + 48.0f;
@@ -403,9 +387,8 @@ void App::LoadLevel3Objects() {
                 m_Collision.AddObstacle(currentX, currentY, 48.0f, 48.0f);
             }
         }
-    };
+        };
 
-    // 🌟 【新增工具 D：移動平台專用格子工具】(同樣支援 float 半格定位)
     auto AddMovingBlockByGrid = [this](const std::string& imgPath, int imgNum, float col, float row, MovingBlock::Axis axis, float range, float speed) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float worldX = leftEdge + (col * 48.0f) + 24.0f;
@@ -414,9 +397,26 @@ void App::LoadLevel3Objects() {
         auto movingBlock = std::make_shared<MovingBlock>(imgPath, worldX, worldY, axis, range, speed);
         m_Blocks.push_back(movingBlock);
         m_Root.AddChild(movingBlock->GetCharacter());
+        };
+
+    // ==========================================
+    // 🌟 新增：火柱輔助產生器
+    // ==========================================
+    auto AddFireBarByGrid = [this](int imgNum, float col, float row, int numFireballs, float speed, float initAngle = 0.0f) {
+        float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
+        float worldX = leftEdge + (col * 48.0f) + 24.0f;
+        // Y軸加上 24.0f 讓火柱旋轉中心對齊方塊的中心點
+        float worldY = -360.0f + (row * 48.0f) + 24.0f;
+
+        auto fireBar = std::make_shared<FireBar>(worldX, worldY, numFireballs, speed, initAngle);
+
+        // 將火柱的每一顆火球加進渲染樹
+        for (auto& fireballAnim : fireBar->GetDrawables()) {
+            m_Root.AddChild(fireballAnim);
+        }
+        m_FireBars.push_back(fireBar);
     };
 
-    // 🪙 【新增工具 E：金幣專用格子生成器】(參數改為 float，完美支援半格定位)
     auto AddCoinByGrid = [this](int imgNum, float col, float row) {
         float leftEdge = -450.0f + static_cast<float>(imgNum - 1) * 768.0f;
         float absoluteX = leftEdge + (col * 48.0f) + 24.0f;
@@ -425,16 +425,8 @@ void App::LoadLevel3Objects() {
         auto coin = std::make_shared<Coin>(absoluteX, absoluteY, 1);
         m_Root.AddChild(coin);
         m_Items.push_back(coin);
-    };
+        };
 
-    // 🪙 【新增工具 F：整排金幣鋪設器】(同步支援 float 參數)
-    auto SpawnCoinsByGrid = [&](int imgNum, float startCol, float endCol, float row) {
-        for (float col = startCol; col <= endCol; col += 1.0f) {
-            AddCoinByGrid(imgNum, col, row);
-        }
-    };
-
-    // 鋪設 1-3 的基本地平線地板
     AddObstacleByGrid(1, 0, 1, 2, 0, 7);
     AddObstacleByGrid(1, 3, 1, 3, 0, 6);
     AddObstacleByGrid(1, 4, 1, 4, 0, 5);
@@ -474,6 +466,8 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(9, 14, 9, 15, 9, 11);
     AddObstacleByGrid(10, 0, 10, 15, 0, 1);
     AddObstacleByGrid(10, 0, 10, 15, 12, 12);
+
+    // 孤立半空的方塊
     AddObstacleByGrid(2, 7, 2, 7, 8, 8);
     AddObstacleByGrid(3, 5, 3, 5, 8, 8);
     AddObstacleByGrid(4, 1, 4, 1, 8, 8);
@@ -485,46 +479,57 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(6, 8, 6, 8, 10, 10);
     AddObstacleByGrid(6, 12, 6, 12, 5, 5);
 
-    // 🧱 【新增：隱形暗牆配置專區】
-    // 一開始是黑色(blackblock)，頂到現形(afterblack)，再頂變(finalafterblack)，裡面藏金幣(COIN)
+    // ==========================================
+    // 🔥 綁定在半空方塊上的火柱大軍
+    // 參數：(圖編號, X格, Y格, 顆數, 旋轉速度, 初始角度)
+    // ==========================================
+    AddFireBarByGrid(2, 7.0f, 8.0f, 6, -2.5f, 0.0f);     // 順時針
+    AddFireBarByGrid(3, 5.0f, 8.0f, 6, 2.5f, 1.57f);     // 逆時針，初始朝上
+    AddFireBarByGrid(4, 1.0f, 8.0f, 6, -3.0f, 3.14f);    // 順時針(快)，初始朝左
+    AddFireBarByGrid(4, 12.0f, 8.0f, 6, 2.0f, 0.0f);     // 逆時針
+    AddFireBarByGrid(5, 3.0f, 8.0f, 6, -2.5f, 1.0f);
+    AddFireBarByGrid(6, 4.0f, 5.0f, 6, 2.5f, 0.0f);
+    AddFireBarByGrid(6, 12.0f, 5.0f, 6, -2.5f, 3.14f);
+
+
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 10.0f, 5.0f, Block::ItemType::COIN);
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 13.0f, 5.0f, Block::ItemType::COIN);
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 11.0f, 9.0f, Block::ItemType::COIN);
     AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 7, 14.0f, 9.0f, Block::ItemType::COIN);
-    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 0.0f,  5.0f, Block::ItemType::COIN);
-    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 1.0f,  9.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 0.0f, 5.0f, Block::ItemType::COIN);
+    AddBlockByGrid(Block::Type::INVISIBLE_ITEM, 8, 1.0f, 9.0f, Block::ItemType::COIN);
 
-    // 🎁 【第 3 關】特定的問號箱子配置
-    AddBlockByGrid(Block::Type::QUESTION, 2, 14.0f, 8.0f, Block::ItemType::MUSHROOM);
+    AddBlockByGrid(Block::Type::QUESTION, 2, 14.0f, 9.0f, Block::ItemType::MUSHROOM);
 
-    // 🎯 移動平台配置區
     std::string platformImg = GA_RESOURCE_DIR"/Image/Items/road.png";
     AddMovingBlockByGrid(platformImg, 9, 6.0f, 9.0f, MovingBlock::Axis::HORIZONTAL, 150.0f, 100.0f);
 
-    // 重置瑪利歐位置的程式碼
     m_Player->SetWorldPosition(-400.0f, 80.0f);
     m_Player->ResetStatus();
     m_Player->GetCharacter()->SetVisible(true);
 }
 
-// 🔄 新增：萬能的關卡切換器 (直接貼在 LoadLevel3Objects 下方)
 void App::SwitchLevel(int nextLevel) {
-    // 1. 🧹 徹底清空上一關的殘留物
     for (auto& block : m_Blocks) {
         m_Root.RemoveChild(block->GetCharacter());
     }
     m_Blocks.clear();
-    m_Collision.Clear(); // 清除上一關所有的隱形牆
+    m_Collision.Clear();
 
-    // 2. 🗺️ 載入新關卡
+    // 🌟 清除上一關殘留的火柱，避免跨關卡作亂
+    for (auto& fb : m_FireBars) {
+        for (auto& anim : fb->GetDrawables()) {
+            m_Root.RemoveChild(anim);
+        }
+    }
+    m_FireBars.clear();
+
     if (nextLevel == 2) {
         LoadLevel2Objects();
     }
     else if (nextLevel == 3) {
         LoadLevel3Objects();
     }
-
-    // (註：如果有重置瑪利歐位置與鏡頭的需求，請在這邊加上你專案對應的變數，例如 m_Player->SetPosition(...) 等等)
 }
 
 void App::AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item) {
