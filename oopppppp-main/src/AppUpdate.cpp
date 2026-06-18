@@ -193,11 +193,41 @@ void App::Update() {
             UpdateBlocksAndItems(dt, allObstacles);
             UpdateEnemiesAndFireballs(dt, allObstacles, pPos);
 
+            if (m_CurrentLevel == 3 && m_Level3Hammer && !m_Level3Hammer->IsDestroyed()) {
+                m_Level3Hammer->Update(dt);
+                m_Level3Hammer->RenderWithCamera(m_WorldOffset); // 修正鏡頭偏移，讓它乖乖待在格子裡
+
+                auto marioBox = m_Player->GetRect(m_WorldOffset);
+                HammerRect hammerBox = m_Level3Hammer->GetHitbox();
+
+                bool isColliding = (marioBox.x < hammerBox.x + hammerBox.width &&
+                                    marioBox.x + marioBox.width > hammerBox.x &&
+                                    marioBox.y < hammerBox.y + hammerBox.height &&
+                                    marioBox.y + hammerBox.height > hammerBox.y);
+
+                if (isColliding) {
+                    m_Level3Hammer->Touch();
+
+                    if (m_Toad) {
+                        m_Toad->SetVisible(true);
+                    }
+
+                    // 這裡也可以順便把關卡狀態設為過關
+                    m_IsLevelClear = true;
+                }
+            }
+            if (m_CurrentLevel == 3 && m_Toad) {
+                m_Toad->SetPosition({ m_ToadWorldX - m_WorldOffset, -225.0f });
+            }
+
             if (m_CurrentLevel == 1) {
                 HandleLevel1ClearAnimation(dt, pPos.x + m_WorldOffset);
             }
             else if (m_CurrentLevel == 2) {
                 HandleLevel2ClearAnimation(dt, pPos.x + m_WorldOffset);
+            }
+            else if (m_CurrentLevel == 3) {
+                HandleLevel3ClearAnimation(dt, pPos.x + m_WorldOffset);
             }
 
             for (auto it = m_ScoreEffects.begin(); it != m_ScoreEffects.end(); ) {
@@ -246,9 +276,7 @@ void App::ResetLevel(bool keepPosition) {
     for (auto& fire : m_BowserFires) { if (fire) m_Root.RemoveChild(fire); }
     m_BowserFires.clear();
 
-    // ==========================================
-    // 🌟 修復 Bug：瑪利歐死掉時，徹底把舊火柱拔掉！
-    // ==========================================
+    // 修復 Bug：瑪利歐死掉時，徹底把舊火柱拔掉！
     for (auto& fb : m_FireBars) {
         if (fb) {
             for (auto& anim : fb->GetDrawables()) {
@@ -275,6 +303,17 @@ void App::ResetLevel(bool keepPosition) {
         if (block && block->GetCharacter()) m_Root.RemoveChild(block->GetCharacter());
     }
     m_Blocks.clear();
+
+    if (m_Level3Hammer && m_Level3Hammer->GetCharacter()) {
+        m_Root.RemoveChild(m_Level3Hammer->GetCharacter());
+    }
+    m_Level3Hammer = nullptr;
+
+    // 死掉重來時，徹底把畫面上的舊 Toad 拔掉，避免記憶體殘留與幽靈現象
+    if (m_Toad) {
+        m_Root.RemoveChild(m_Toad);
+    }
+    m_Toad = nullptr;
 
     m_Collision.ClearObstacles();
 
@@ -353,10 +392,122 @@ void App::ResetLevel(bool keepPosition) {
         if (m_FlagLvl2) m_FlagLvl2->SetVisible(false);
 
         LoadLevel3Objects();
+
+        float tileWidth = 16.0f * 3.0f;
+        float tileHeight = 16.0f * 3.0f;
+        float mapWidth = 16.0f * tileWidth;
+
+        float hammerX = (8 * mapWidth) + (4 * tileWidth);
+        float hammerY = -242.0f + (4 * tileHeight);
+
+        m_Level3Hammer = std::make_shared<HammerProp>(hammerX, hammerY);
+
+        // 這行最重要：把鐵鎚的圖片加進渲染器，畫面上才看得到！
+        if (m_Level3Hammer->GetCharacter()) {
+            m_Root.AddChild(m_Level3Hammer->GetCharacter());
+        }
+        m_ToadWorldX = hammerX + 400.0f;
+
+        // 建立 Toad 物件
+        m_Toad = std::make_shared<Character>("C:\\Users\\User\\Downloads\\oopppppp\\oopppppp-main\\Resources\\Image\\Character\\toad\\toadwin.png");
+        m_Toad->SetZIndex(4);
+        m_Toad->m_Transform.scale = { 3.0f, 3.0f }; // 設定與瑪利歐相同縮放尺寸
+        m_Toad->SetVisible(false);                   // 一開始先隱形
+
+        m_Root.AddChild(m_Toad);                     // 放進渲染樹
     }
 
     for (auto& block : m_Blocks) {
         if (block && block->GetCharacter()) block->GetCharacter()->SetVisible(true);
     }
     for (auto& item : m_Items) { if (item) item->SetVisible(true); }
+}
+void App::HandleLevel3ClearAnimation(float dt, float marioWorldX) {
+    static bool s_AnimSet = false;
+    static float s_StartX = 0.0f;
+
+    if (!m_IsLevelClear) {
+        s_AnimSet = false;
+        return;
+    }
+
+    if (!s_AnimSet) {
+        std::vector<std::string> runAnims;
+        if (m_Player->IsFire()) {
+            runAnims = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/fire/big/run3.png" };
+        }
+        else if (m_Player->IsBig()) {
+            runAnims = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/big/run3.png" };
+        }
+        else {
+            runAnims = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run1.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run2.png", GA_RESOURCE_DIR"/Image/Character/mario/normal/small/run3.png" };
+        }
+        m_Player->GetCharacter()->SetAnimation(runAnims, 100);
+        m_Player->GetCharacter()->Play();
+
+        s_StartX = marioWorldX;
+        s_AnimSet = true;
+    }
+
+    float targetX = m_ToadWorldX - 70.0f;
+
+    // 設定底層地板高度 (Toad 站的地板)
+    float groundY = (m_Player->IsBig() || m_Player->IsFire()) ? -216.0f : -240.0f;
+
+    // 設定橋上（高台）的地板高度！
+    float bridgeGroundY = (m_Player->IsBig() || m_Player->IsFire()) ? -24.0f : -48.0f;
+
+    float currentY = m_Player->GetCharacter()->GetPosition().y;
+
+    if (marioWorldX < targetX) {
+        // 🚶‍♂️ 往右走與鏡頭跟隨
+        float moveDist = 150.0f * dt;
+        marioWorldX += moveDist;
+        m_WorldOffset += moveDist;
+
+        if (marioWorldX > s_StartX + 150.0f) {
+            // ⬇️ 超過 150 了，離開高台，掉向底層 Toad 的地板
+            if (currentY > groundY) {
+                currentY -= 300.0f * dt;
+                if (currentY < groundY) {
+                    currentY = groundY;
+                }
+            }
+        } else {
+            // 🌉 前 150 公尺：強制讓他對齊「高台鐵鎚」的地板高度！
+            // 如果他是跳起來吃鐵鎚的，就讓他快速掉到橋面上
+            if (currentY > bridgeGroundY) {
+                currentY -= 300.0f * dt;
+                if (currentY < bridgeGroundY) {
+                    currentY = bridgeGroundY;
+                }
+            } else {
+                currentY = bridgeGroundY;
+            }
+        }
+
+        m_Player->GetCharacter()->SetPosition({ marioWorldX - m_WorldOffset, currentY });
+        m_Player->GetCharacter()->m_Transform.scale.x = 3.0f;
+    }
+    else {
+        // 🛑 走到 Toad 面前
+        m_Player->GetCharacter()->SetPosition({ targetX - m_WorldOffset, groundY });
+
+        std::vector<std::string> idleAnim;
+        if (m_Player->IsFire()) {
+            idleAnim = { GA_RESOURCE_DIR"/Image/Character/mario/fire/big/stand.png" };
+        }
+        else if (m_Player->IsBig()) {
+            idleAnim = { GA_RESOURCE_DIR"/Image/Character/mario/normal/big/stand.png" };
+        }
+        else {
+            idleAnim = { GA_RESOURCE_DIR"/Image/Character/mario/normal/small/stand.png" };
+        }
+        m_Player->GetCharacter()->SetAnimation(idleAnim, 100);
+        m_Player->GetCharacter()->Pause();
+
+        m_LevelClearTimer += dt;
+        if (m_LevelClearTimer > 3.0f) {
+        }
+    }
 }

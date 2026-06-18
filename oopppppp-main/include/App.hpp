@@ -19,6 +19,7 @@
 #include "Bowser.hpp"
 #include "BowserFire.hpp"
 #include "FireBar.hpp"
+#include "HammerProp.hpp"
 
 #include <memory>
 #include <vector>
@@ -99,6 +100,9 @@ private:
     std::vector<std::shared_ptr<FireBar>> m_FireBars;
 
     std::shared_ptr<Character> m_FailScreen;
+    std::shared_ptr<HammerProp> m_Level3Hammer = nullptr;
+    std::shared_ptr<Character> m_Toad = nullptr;
+    float m_ToadWorldX = 0.0f;
 
     bool m_IsLevelClear = false;
     bool m_IsFlagSliding = false;
@@ -119,6 +123,7 @@ private:
     void UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstacles, const glm::vec2& pPos);
     void HandleLevel1ClearAnimation(float dt, float marioWorldX);
     void HandleLevel2ClearAnimation(float dt, float marioWorldX);
+    void HandleLevel3ClearAnimation(float dt, float marioWorldX);
 };
 
 #endif // APP_HPP

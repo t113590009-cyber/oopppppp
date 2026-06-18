@@ -479,10 +479,9 @@ void App::LoadLevel3Objects() {
     AddObstacleByGrid(6, 8, 6, 8, 10, 10);
     AddObstacleByGrid(6, 12, 6, 12, 5, 5);
 
-    // ==========================================
+
     // 🔥 綁定在半空方塊上的火柱大軍
     // 參數：(圖編號, X格, Y格, 顆數, 旋轉速度, 初始角度)
-    // ==========================================
     AddFireBarByGrid(2, 7.0f, 8.0f, 6, -2.5f, 0.0f);     // 順時針
     AddFireBarByGrid(3, 5.0f, 8.0f, 6, 2.5f, 1.57f);     // 逆時針，初始朝上
     AddFireBarByGrid(4, 1.0f, 8.0f, 6, -3.0f, 3.14f);    // 順時針(快)，初始朝左
@@ -524,6 +523,12 @@ void App::SwitchLevel(int nextLevel) {
     }
     m_FireBars.clear();
 
+    // 🌟 【新增：安全機制】切換關卡時，徹底拔除並清空鐵鎚物件 🌟
+    if (m_Level3Hammer && m_Level3Hammer->GetCharacter()) {
+        m_Root.RemoveChild(m_Level3Hammer->GetCharacter());
+    }
+    m_Level3Hammer = nullptr;
+
     if (nextLevel == 2) {
         LoadLevel2Objects();
     }
@@ -531,7 +536,6 @@ void App::SwitchLevel(int nextLevel) {
         LoadLevel3Objects();
     }
 }
-
 void App::AddBlock(Block::Type type, int gridX, float gridY, Block::ItemType item) {
     float worldX = -360.0f + (static_cast<float>(gridX) * 48.0f);
 
