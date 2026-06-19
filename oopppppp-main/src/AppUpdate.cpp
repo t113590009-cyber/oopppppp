@@ -378,7 +378,7 @@ void App::ResetLevel(bool keepPosition) {
         if (m_Player) {
             m_Player->ResetStatus();
             if (!keepPosition) {
-                m_Player->SetWorldPosition(-420.0f, -264.0f);
+                m_Player->SetWorldPosition(-400.0f, -250.0f);
             }
             if (m_Player->GetCharacter()) m_Player->GetCharacter()->SetVisible(true);
         }
