@@ -165,7 +165,7 @@ void App::LoadLevelObjects() {
     }
 
     AddBlock(Block::Type::QUESTION, 16, ROW_1_Y, Block::ItemType::COIN);
-    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y, Block::ItemType::MUSHROOM);
+    AddBlock(Block::Type::BRICK_FRAGILE, 20, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 21, ROW_1_Y, Block::ItemType::MUSHROOM);
     AddBlock(Block::Type::BRICK_FRAGILE, 22, ROW_1_Y);
     AddBlock(Block::Type::QUESTION, 23, ROW_1_Y, Block::ItemType::COIN);

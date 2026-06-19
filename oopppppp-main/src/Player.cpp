@@ -3,7 +3,7 @@
 #include "Util/Keycode.hpp"
 #include "Util/Logger.hpp"
 #include <cmath>
-#include "MovingBlock.hpp" // 🌟 記得加這行！
+#include "MovingBlock.hpp" 
 
 Player::Player() {
     // ==========================================
@@ -165,7 +165,6 @@ void Player::Die() {
     if (m_CurrentState == AnimState::DEAD) return;
     m_CurrentState = AnimState::DEAD;
 
-    // 🌟 新增：只有在死掉的時候，才把大隻和火球狀態洗掉！
     m_IsBig = false;
     m_IsFire = false;
     m_IsStarMode = false;
@@ -179,8 +178,7 @@ void Player::Die() {
 void Player::ResetStatus() {
     m_CurrentState = AnimState::IDLE;
 
-    // 🛑 刪掉 m_IsBig 和 m_IsFire 的重置，讓過關可以保留狀態！
-    m_IsStarMode = false; // 🌟 備註：無敵星星通常換關會失效，所以星星的 false 我們保留
+    m_IsStarMode = false;
 
     m_Velocity = { 0.0f, 0.0f };
     RefreshAnimations();
@@ -210,16 +208,13 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         return;
     }
 
-    // ==========================================
-    // 🌟 測試秘技：一鍵切換【空中無限跳 + 無敵】模式 (按數字鍵 9)
-    // ==========================================
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_9)) {
         if (m_IsStarMode) {
-            m_StarTimer = 0.0f; // 如果已經是無敵狀態，關閉無敵模式
+            m_StarTimer = 0.0f;
         }
         else {
             GetStar();
-            m_StarTimer = 99999.0f; // 給予無限的無敵時間
+            m_StarTimer = 99999.0f;
         }
     }
 
@@ -272,7 +267,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         if (m_InvincibleTimer <= 0.0f) { m_InvincibleTimer = 0.0f; m_IsInvincible = false; if (m_CurrentState != AnimState::DEAD) m_Mario->SetVisible(true); }
     }
 
-    // 🚇 水管動畫播放中
     AnimState nextState = m_CurrentState;
     if (m_CurrentState == AnimState::WARP_DOWN_A) {
         currentPos.y -= 1.5f * (deltaTime * 60.0f);
@@ -290,7 +284,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Mario->SetPosition(currentPos); m_CurrentState = nextState; return;
     }
 
-    // 🏃 原版物理與輸入偵測
     bool btnLeft = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::LEFT);
     bool btnRight = Util::Input::IsKeyPressed(Util::Keycode::D) || Util::Input::IsKeyPressed(Util::Keycode::RIGHT);
     bool btnJump = Util::Input::IsKeyPressed(Util::Keycode::W) || Util::Input::IsKeyPressed(Util::Keycode::UP);
@@ -305,13 +298,12 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     m_WasDashing = btnDash;
     if (m_DashAnimTimer > 0.0f) m_DashAnimTimer -= deltaTime;
 
-    // 🌟 修正核心：偵測到水管後直接 return！絕對不讓後面的物理引擎覆蓋狀態！
     if (Util::Input::IsKeyPressed(Util::Keycode::S) || Util::Input::IsKeyPressed(Util::Keycode::DOWN)) {
         if (m_IsOnGround && std::abs(absoluteX - 2404.0f) < 25.0f) {
             m_CurrentState = AnimState::WARP_DOWN_A;
             m_WarpStartY = currentPos.y;
             m_Velocity = { 0.0f, 0.0f };
-            return; // 🛑 提早結束這回合！
+            return;
         }
         else if (m_IsOnGround) {
             isCrouching = true;
@@ -322,7 +314,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
             m_CurrentState = AnimState::WARP_RIGHT_B;
             m_WarpStartX = currentPos.x;
             m_Velocity = { 0.0f, 0.0f };
-            return; // 🛑 提早結束這回合！
+            return;
         }
     }
 
@@ -380,7 +372,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         if (m_Velocity.x < -maxSpeed) m_Velocity.x = -maxSpeed;
     }
 
-    // 更新狀態
     if (!m_IsOnGround) nextState = AnimState::JUMP;
     else if (isCrouching) nextState = AnimState::CROUCHING;
     else if (m_IsSkidding || m_DashAnimTimer > 0.0f) nextState = AnimState::SPRINT;
@@ -397,49 +388,85 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         if (prevHalf != halfHeight) currentPos.y += (halfHeight - prevHalf);
     }
 
-    float bodyYOffset = -halfHeight;
-    float feetYOffset = -halfHeight - 2.0f;
-    float headYOffset = halfHeight - 14.0f;
-    float centerOffset = halfHeight;
-
-    // 水平碰撞
-    Rect marioBodyBox = { worldOffset + nextPosX.x - 18.0f, currentPos.y + bodyYOffset, 36.0f, bodyHeight };
+    // ==========================================
+    // 🌟 真正包含「防瞬移邏輯」的完美防卡牆系統
+    // ==========================================
     bool canMoveX = true;
+    float adjustedX = nextPosX.x;
 
-    for (const auto& obs : collision.GetObstacles()) {
-        if (obs.width == 0 || obs.height == 0) continue;
-        if (CollisionHandler::CheckCollision(marioBodyBox, obs)) {
-            if (currentPos.y - 20.0f < obs.y + obs.height - 2.0f) { canMoveX = false; break; }
-        }
-    }
-    if (canMoveX) {
-        for (auto& block : blocks) {
-            if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
-            if (CollisionHandler::CheckCollision(marioBodyBox, block->GetHitbox())) {
-                if (currentPos.y - 20.0f < block->GetHitbox().y + block->GetHitbox().height - 2.0f) { canMoveX = false; break; }
+    auto checkWallCollision = [&](const Rect& obs) {
+        if (obs.width == 0 || obs.height == 0) return;
+
+        float marioTop = currentPos.y + halfHeight;
+        float marioBottom = currentPos.y - halfHeight;
+        float obsTop = obs.y + obs.height;
+        float obsBottom = obs.y;
+
+        // 【防護 1】踩在方塊上：容錯加到 12 像素，只要在方塊上緣，絕對不啟動推擠
+        if (marioBottom >= obsTop - 12.0f) return;
+
+        // 【防護 2】頂在方塊下：容錯加到 12 像素，只要在方塊下緣，絕對不啟動推擠
+        if (marioTop <= obsBottom + 12.0f) return;
+
+        // 【防護 3】把瑪利歐肚子判定區縮得更小 (上下各削掉 12 像素)
+        Rect checkRect = { worldOffset + adjustedX - 18.0f, currentPos.y - halfHeight + 12.0f, 36.0f, bodyHeight - 24.0f };
+
+        if (CollisionHandler::CheckCollision(checkRect, obs)) {
+            float obsLeft = obs.x;
+            float obsRight = obs.x + obs.width;
+            float marioRight = worldOffset + adjustedX + 18.0f;
+            float marioLeft = worldOffset + adjustedX - 18.0f;
+
+            float overlapRight = marioRight - obsLeft;
+            float overlapLeft = obsRight - marioLeft;
+
+            // 🌟 核心防瞬移：只有「卡進去少於 24 像素」，我們才承認這是撞到牆壁！
+            // 如果大於 24 像素，代表他是踩在超級大地板上，絕對不推！
+            if (m_Velocity.x > 0 && overlapRight > 0 && overlapRight < 24.0f) {
+                adjustedX = obsLeft - 18.1f - worldOffset;
+                canMoveX = false;
+            }
+            else if (m_Velocity.x < 0 && overlapLeft > 0 && overlapLeft < 24.0f) {
+                adjustedX = obsRight + 18.1f - worldOffset;
+                canMoveX = false;
+            }
+            else if (m_Velocity.x == 0) {
+                if (overlapRight > 0 && overlapRight < overlapLeft && overlapRight < 24.0f) {
+                    adjustedX = obsLeft - 18.1f - worldOffset;
+                    canMoveX = false;
+                }
+                else if (overlapLeft > 0 && overlapLeft < 24.0f) {
+                    adjustedX = obsRight + 18.1f - worldOffset;
+                    canMoveX = false;
+                }
             }
         }
-    }
+        };
 
-    if (canMoveX) {
-        currentPos.x = nextPosX.x;
-        if (worldOffset > 15000.0f) {
-            if (currentPos.x < -360.0f) { currentPos.x = -360.0f; m_Velocity.x = 0; }
-            if (currentPos.x > 450.0f) { currentPos.x = 450.0f; m_Velocity.x = 0; }
-        }
-        else {
-            if (currentPos.x > 0.0f) { worldOffset += currentPos.x; currentPos.x = 0.0f; }
-            if (currentPos.x < -360.0f) { currentPos.x = -360.0f; m_Velocity.x = 0; }
-        }
-    }
-    else {
+    // 檢查所有的牆壁和障礙物
+    for (const auto& obs : collision.GetObstacles()) checkWallCollision(obs);
+    for (auto& block : blocks) checkWallCollision(block->GetHitbox());
+
+    // 🌟 更新為安全座標
+    currentPos.x = adjustedX;
+
+    if (!canMoveX) {
         m_Velocity.x = 0.0f;
     }
 
+    // 畫面邊界限制
+    if (worldOffset > 15000.0f) {
+        if (currentPos.x < -360.0f) { currentPos.x = -360.0f; m_Velocity.x = 0; }
+        if (currentPos.x > 450.0f) { currentPos.x = 450.0f; m_Velocity.x = 0; }
+    }
+    else {
+        if (currentPos.x > 0.0f) { worldOffset += currentPos.x; currentPos.x = 0.0f; }
+        if (currentPos.x < -360.0f) { currentPos.x = -360.0f; m_Velocity.x = 0; }
+    }
+
     // ==========================================
-    // 🦘 動態跳躍與重力 (已修改：支援 NUM_9 空中無限跳)
+    // 🦘 動態跳躍與重力
     // ==========================================
-    // 💡 關鍵修改：如果是靠 NUM_9 觸發的超長無敵狀態，就無視 m_IsOnGround (地面) 的限制！
     bool isCheatJump = (m_IsStarMode && m_StarTimer > 50000.0f);
 
     if ((m_IsOnGround || isCheatJump) && btnJump && !m_WasJumping && !isCrouching) {
@@ -450,7 +477,7 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         else if (absVx >= maxWalkSpeed) jumpInitVel = 4.12f;
 
         m_Velocity.y = jumpInitVel * NES_SCALE;
-        m_IsOnGround = false; // 每次空中跳躍都重設離地狀態
+        m_IsOnGround = false;
     }
 
     float gravity = 0.43f * NES_SCALE * 60.0f;
@@ -461,24 +488,23 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         else gravity = 0.11f * NES_SCALE * 60.0f;
     }
 
-    // 處理頭部往上跳的碰撞 (包含磚塊與天花板)
+    // 處理頭部往上跳的碰撞
     if (m_Velocity.y > 0.0f) {
+        float headYOffset = halfHeight - 14.0f;
         Rect marioHead = { worldOffset + currentPos.x - 10.0f, currentPos.y + headYOffset, 20.0f, 14.0f };
 
-        // 💡 1. 新增：先檢查是否有撞到「靜態天花板下緣 (AddObstacleByGrid 生成的牆壁)」
         for (const auto& obs : collision.GetObstacles()) {
             if (obs.width == 0 || obs.height == 0) continue;
             if (CollisionHandler::CheckCollision(marioHead, obs)) {
-                m_Velocity.y = -2.0f * NES_SCALE; // 撞到天花板下緣，強制失去向上的動能並掉落
+                m_Velocity.y = -2.0f * NES_SCALE;
                 break;
             }
         }
 
-        // 2. 原本的邏輯：檢查是否撞到「可互動磚塊 (blocks)」
         for (auto& block : blocks) {
             if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
             if (CollisionHandler::CheckCollision(marioHead, block->GetHitbox())) {
-                m_Velocity.y = -2.0f * NES_SCALE; // 撞到磚塊反彈
+                m_Velocity.y = -2.0f * NES_SCALE;
                 if (m_IsBig) block->Hit(m_IsBig); else block->Hit();
                 break;
             }
@@ -499,10 +525,12 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
     }
 
     // 地面高度偵測
+    float feetYOffset = -halfHeight - 2.0f;
+    float centerOffset = halfHeight;
     Rect marioFeet = { worldOffset + currentPos.x - 8.0f, currentPos.y + feetYOffset, 16.0f, 5.0f };
     float groundHeight = collision.GetGroundHeight(marioFeet, -600.0f);
 
-    float platformVelocityX = 0.0f; // 🌟 用來儲存腳下移動平台的水平速度
+    float platformVelocityX = 0.0f;
 
     for (auto& block : blocks) {
         if (block->GetHitbox().width == 0 || block->GetHitbox().height == 0) continue;
@@ -511,13 +539,12 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
             if (blockTop > groundHeight) {
                 groundHeight = blockTop;
 
-                // 🌟 檢查踩到的這塊磚是不是移動平台？
                 auto movingBlock = std::dynamic_pointer_cast<MovingBlock>(block);
                 if (movingBlock) {
                     platformVelocityX = movingBlock->GetVelocityX();
                 }
                 else {
-                    platformVelocityX = 0.0f; // 踩到普通磚塊就沒有額外速度
+                    platformVelocityX = 0.0f;
                 }
             }
         }
@@ -528,7 +555,6 @@ void Player::Update(float& worldOffset, const CollisionHandler& collision, std::
         m_Velocity.y = 0.0f;
         m_IsOnGround = true;
 
-        // 🌟 核心：如果平台正在左右移動，強迫瑪利歐跟著它一起平移！
         if (platformVelocityX != 0.0f) {
             currentPos.x += platformVelocityX * deltaTime;
         }
@@ -598,11 +624,6 @@ float Player::GetWorldX(float worldOffset) const {
     return worldOffset + m_Mario->GetPosition().x;
 }
 
-// ==========================================
-// 🌟 新增：瑪利歐踩到怪物時的彈跳動作
-// ==========================================
 void Player::Bounce() {
-    // 踩到敵人後給予瑪利歐一個向上的速度
-    // 400.0f 大約是正常跳躍高度的一半，非常符合踩踏後的回饋感！
     m_Velocity.y = 400.0f;
 }

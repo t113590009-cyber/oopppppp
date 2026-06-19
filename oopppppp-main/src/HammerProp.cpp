@@ -2,16 +2,17 @@
 #include "config.hpp"
 
 HammerProp::HammerProp(float worldX, float worldY) : m_WorldX(worldX), m_WorldY(worldY) {
+    // 🌟 修正為專案標準的相對路徑寫法，這樣傳給同學也不會壞掉！
     m_ImagePaths = {
-        "C:\\Users\\User\\Downloads\\oopppppp\\oopppppp-main\\Resources\\Image\\Props\\1-4\\hammer1.png",
-        "C:\\Users\\User\\Downloads\\oopppppp\\oopppppp-main\\Resources\\Image\\Props\\1-4\\hammer2.png",
-        "C:\\Users\\User\\Downloads\\oopppppp\\oopppppp-main\\Resources\\Image\\Props\\1-4\\hammer3.png",
-        "C:\\Users\\User\\Downloads\\oopppppp\\oopppppp-main\\Resources\\Image\\Props\\1-4\\hammer4.png"
+        GA_RESOURCE_DIR"/Image/Props/1-4/hammer1.png",
+        GA_RESOURCE_DIR"/Image/Props/1-4/hammer2.png",
+        GA_RESOURCE_DIR"/Image/Props/1-4/hammer3.png",
+        GA_RESOURCE_DIR"/Image/Props/1-4/hammer4.png"
     };
 
     m_Animation = std::make_shared<AnimatedCharacter>(std::vector<std::string>{m_ImagePaths[0]});
     m_Animation->SetZIndex(5);
-    m_Animation->SetPosition({worldX, worldY});
+    m_Animation->SetPosition({ worldX, worldY });
     m_Animation->m_Transform.scale = { NES_SCALE * 0.5f, NES_SCALE * 0.5f };
 }
 

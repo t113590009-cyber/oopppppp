@@ -4,6 +4,11 @@
 
 BowserFire::BowserFire(float startX, float startY, bool movingLeft)
     : m_WorldX(startX), m_WorldY(startY) {
+
+    // 🌟 修正點：給予火球超長的存活時間 (10秒)！
+    // 這樣火焰就可以輕易飛越一整個螢幕而不會中途消失了。
+    m_LifeTimer = 10.0f;
+
     m_SpeedX = movingLeft ? -150.0f : 150.0f; // 火焰飛行速度
 
     // 🌟 讀取你的火焰圖片

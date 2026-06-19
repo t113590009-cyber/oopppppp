@@ -42,23 +42,32 @@ void Fireball::Update(float dt, float worldOffset, const std::vector<Rect>& obst
     m_Velocity.y -= m_Gravity * dt;
     m_WorldY += m_Velocity.y * dt;
 
+    // 完整的箱子：用來偵測彈跳
     Rect fireballBox = { m_WorldX - 12.0f, m_WorldY - 12.0f, 24.0f, 24.0f };
+
+    // 🌟 防卡磚縫的牆壁專用碰撞箱：底部抬高 10 像素，高度變矮 10 像素
+    Rect wallBox = { m_WorldX - 12.0f, m_WorldY - 2.0f, 24.0f, 14.0f };
 
     bool touchedWall = false;
 
     for (const auto& obs : obstacles) {
         if (obs.width == 0 || obs.height == 0) continue;
 
+        // 先用完整的箱子檢查是否碰到任何東西
         if (CollisionHandler::CheckCollision(fireballBox, obs)) {
             float fireballBottom = fireballBox.y;
             float obsTop = obs.y + obs.height;
 
-            if (fireballBottom - m_Velocity.y * dt >= obsTop - 10.0f) {
+            // 判斷是否為「踩到地板」 (火球往下掉，且上一幀的高度還在地板之上)
+            if (m_Velocity.y <= 0.0f && (fireballBottom - m_Velocity.y * dt) >= obsTop - 10.0f) {
                 m_WorldY = obsTop + 12.0f;
-                m_Velocity.y = 800.0f;
+                m_Velocity.y = 800.0f; // 成功彈跳
             }
             else {
-                touchedWall = true;
+                // 🌟 如果不是地板，我們改用「懸空的牆壁箱」來判定是不是真的撞到牆
+                if (CollisionHandler::CheckCollision(wallBox, obs)) {
+                    touchedWall = true;
+                }
             }
         }
     }

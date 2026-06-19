@@ -96,9 +96,6 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         return;
     }
 
-    // ==========================================
-    // 🌟 更新並偵測火柱
-    // ==========================================
     for (auto& fb : m_FireBars) {
         fb->Update(dt, m_WorldOffset);
         fb->Interact(m_Player.get(), m_WorldOffset);
@@ -216,7 +213,7 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
     else if (m_CurrentLevel == 3) {
-        if (m_SpawnPhase == 0 && m_WorldOffset + 1500.0f > 6116.0f) {
+        if (m_SpawnPhase == 0) {
             auto bowser = std::make_shared<Bowser>(6116.0f, 0.0f);
             m_Root.AddChild(bowser);
             m_Bowsers.push_back(bowser);
@@ -227,6 +224,9 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
     const int STOMP_SCORES[] = { 100, 200, 400, 500, 800, 1000, 2000, 4000, 8000, -1 };
     Rect marioScreenRect = { pPos.x - 18.0f, pPos.y - 25.0f, 36.0f, 20.0f };
 
+    // ==========================================
+    // 🍄 栗子寶寶更新邏輯
+    // ==========================================
     for (auto it = m_Goombas.begin(); it != m_Goombas.end(); ) {
         (*it)->Update(dt, m_WorldOffset, m_Collision);
         Rect goombaScreenRect = (*it)->GetRect(m_WorldOffset);
@@ -242,17 +242,40 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
             }
         }
 
-        if (hitByFireball && (*it)->GetState() != Goomba::State::DEAD) {
-            (*it)->Stomp();
+        bool hitByShell = false;
+        for (auto& koopa : m_Koopatroopas) {
+            if (koopa->GetState() == Koopatroopa::State::SHELL_MOVING) {
+                Rect koopaScreenRect = koopa->GetRect(m_WorldOffset);
+
+                // 🌟 【修正 2】加回這行！把龜殼的世界座標減掉攝影機偏移，栗子寶寶才不會有無敵金身！
+                koopaScreenRect.x -= m_WorldOffset;
+
+                if (CollisionHandler::CheckCollision(koopaScreenRect, goombaScreenRect)) {
+                    hitByShell = true;
+                    break;
+                }
+            }
+        }
+
+        if (hitByFireball && (*it)->GetState() != Goomba::State::DEAD && (*it)->GetState() != Goomba::State::FLIPPED) {
+            (*it)->FlipDie();
             m_Score += 200;
             float gX = goombaScreenRect.x + m_WorldOffset + 18.0f;
             auto score = std::make_shared<ScoreEffect>(200, gX, goombaScreenRect.y + 24.0f);
             m_Root.AddChild(score->GetDrawable());
             m_ScoreEffects.push_back(score);
         }
+        else if (hitByShell && (*it)->GetState() == Goomba::State::WALKING) {
+            (*it)->FlipDie();
+            m_Score += 100;
+            float gX = goombaScreenRect.x + m_WorldOffset + 18.0f;
+            auto score = std::make_shared<ScoreEffect>(100, gX, goombaScreenRect.y + 24.0f);
+            m_Root.AddChild(score->GetDrawable());
+            m_ScoreEffects.push_back(score);
+        }
         else if ((*it)->GetState() == Goomba::State::WALKING && CollisionHandler::CheckCollision(marioScreenRect, goombaScreenRect)) {
             if (m_Player->IsStarMode()) {
-                (*it)->Stomp();
+                (*it)->FlipDie();
                 m_Score += 100;
                 float gX = goombaScreenRect.x + m_WorldOffset + 18.0f;
                 auto score = std::make_shared<ScoreEffect>(100, gX, goombaScreenRect.y + 24.0f);
@@ -290,13 +313,19 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 
+    // ==========================================
+    // 🐢 烏龜更新邏輯
+    // ==========================================
     for (auto& koopa : m_Koopatroopas) {
         koopa->Update(dt, m_WorldOffset, allObstacles);
-        Rect koopaRect = koopa->GetRect(m_WorldOffset);
+        Rect koopaScreenRect = koopa->GetRect(m_WorldOffset);
 
         bool hitByFireball = false;
         for (auto& fb : m_Fireballs) {
-            if (!fb->IsDestroyed() && !fb->IsExploding() && CollisionHandler::CheckCollision(fb->GetRect(), koopaRect)) {
+            Rect fbScreenRect = fb->GetRect();
+            fbScreenRect.x -= m_WorldOffset;
+
+            if (!fb->IsDestroyed() && !fb->IsExploding() && CollisionHandler::CheckCollision(fbScreenRect, koopaScreenRect)) {
                 fb->Explode();
                 hitByFireball = true;
                 break;
@@ -305,8 +334,8 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         if (hitByFireball && koopa->GetState() != Koopatroopa::State::DEAD) {
             koopa->Stomp();
             m_Score += 200;
-            float kX = koopaRect.x + 18.0f;
-            auto score = std::make_shared<ScoreEffect>(200, kX, koopaRect.y + 24.0f);
+            float kX = koopaScreenRect.x + m_WorldOffset + 18.0f;
+            auto score = std::make_shared<ScoreEffect>(200, kX, koopaScreenRect.y + 24.0f);
             m_Root.AddChild(score->GetDrawable());
             m_ScoreEffects.push_back(score);
         }
@@ -314,6 +343,9 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         koopa->Interact(m_Player.get(), m_WorldOffset);
     }
 
+    // ==========================================
+    // 🐉 庫巴與火球更新邏輯
+    // ==========================================
     for (auto it = m_BowserFires.begin(); it != m_BowserFires.end(); ) {
         (*it)->Update(dt, m_WorldOffset);
         (*it)->Interact(m_Player.get(), m_WorldOffset);
@@ -330,18 +362,27 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
     for (auto& bowser : m_Bowsers) {
         auto newFire = bowser->Update(dt, m_WorldOffset, allObstacles);
         if (newFire) {
+            newFire->Update(0.0f, m_WorldOffset);
+
             m_Root.AddChild(newFire);
             m_BowserFires.push_back(newFire);
         }
 
         bowser->Interact(m_Player.get(), m_WorldOffset);
 
+        Rect bowserScreenRect = bowser->GetRect(m_WorldOffset);
+
+        if (bowserScreenRect.x > 800.0f) {
+            bowserScreenRect.x -= m_WorldOffset;
+        }
+
         for (auto& fb : m_Fireballs) {
             Rect fbScreenRect = fb->GetRect();
             fbScreenRect.x -= m_WorldOffset;
 
             if (!fb->IsDestroyed() && !fb->IsExploding() && !bowser->IsDead()) {
-                if (CollisionHandler::CheckCollision(fbScreenRect, bowser->GetRect(m_WorldOffset))) {
+                if (CollisionHandler::CheckCollision(fbScreenRect, bowserScreenRect)) {
+
                     bowser->TakeDamage(1);
                     fb->Explode();
 
@@ -353,4 +394,3 @@ void App::UpdateEnemiesAndFireballs(float dt, const std::vector<Rect>& allObstac
         }
     }
 }
-//
